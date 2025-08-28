@@ -8,7 +8,7 @@ engine = create_async_engine(url=settings.DB_URL, echo=True)
 
 async def create_db_tables():
     async with engine.begin() as connection:
-        from models import User  # noqa: F401
+        from .models import User  # noqa: F401
 
         await connection.run_sync(SQLModel.metadata.create_all)
 
