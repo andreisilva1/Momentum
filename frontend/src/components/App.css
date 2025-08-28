@@ -1,0 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Anton&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Story+Script&display=swap");
+
+@font-face {
+  font-family: StoryScript;
+  src: url("..src/assets/fonts/StoryScript-Regular.ttf");
+}
+@import "tailwindcss";
+
+@theme {
+  --font-storyscript: Story Script, "sans-serif";
+  --font-anton: Anton, "sans-serif";
+}
