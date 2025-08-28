@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import "./App.css";
 import backgroundImage from "../assets/pexels-fauxels-3183197.jpg";
+import { useState } from "react";
 
 type FormData = {
   username: string;
@@ -15,7 +16,9 @@ const User = () => {
     setError,
     formState: { errors },
   } = useForm<FormData>();
-
+  const login = async (data: FormData) => {};
+  const signup = async (data: FormData) => {};
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="flex items-center justify-center h-screen bg-black overflow-hidden">
       <div className="relative w-full h-full overflow-hidden">
@@ -60,6 +63,7 @@ const User = () => {
             <h1 className="mb-10 mt-3 mx-auto text-3xl">Register/Login</h1>
             <label htmlFor="username">Username</label>
             <input
+              {...register("username", { required: "Username required" })}
               type="text"
               name="username"
               placeholder="Enter your username"
@@ -67,6 +71,7 @@ const User = () => {
             />
             <label htmlFor="e-mail">E-mail</label>
             <input
+              {...register("email", { required: "E-mail required" })}
               type="text"
               name="e-mail"
               placeholder="Enter your e-mail"
@@ -74,22 +79,39 @@ const User = () => {
             />
             <label htmlFor="password">Password</label>
             <input
-              type="text"
+              {...register("password", { required: "Password required" })}
+              type={showPassword ? "text" : "password"}
               name="Password"
               placeholder="Enter your password"
               className="p-2 rounded-lg shadow-2xl border-3 mt-2 mb-5"
             />
             <label htmlFor="confirmPassword">Confirm password</label>
             <input
-              type="text"
+              {...register("confirmPassword", {
+                required: "Confirm Password required",
+              })}
+              type={showPassword ? "text" : "password"}
               name="confirmPassword"
               placeholder="Confirm your password"
               className="p-2 rounded-lg shadow-2xl border-3 mt-2 mb-5"
             />
-            <button className="pt-2 pb-2 pl-4 pr-4 bg-blue-700 text-white mb-2 hover:bg-blue-950 cursor-pointer">
+            <button
+              type="button"
+              className="pt-2 pb-2 pl-4 pr-4 bg-red-700 text-white mb-2 hover:bg-red-950 cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "Show Password" : "Hide Password"}
+            </button>
+            <button
+              onClick={handleSubmit(signup)}
+              className="pt-2 pb-2 pl-4 pr-4 bg-blue-700 text-white mb-2 hover:bg-blue-950 cursor-pointer"
+            >
               Register
             </button>
-            <button className="pt-2 pb-2 pl-4 pr-4 bg-green-700 text-white mb-5 hover:bg-green-950 cursor-pointer">
+            <button
+              onClick={handleSubmit(login)}
+              className="pt-2 pb-2 pl-4 pr-4 bg-green-700 text-white mb-5 hover:bg-green-950 cursor-pointer"
+            >
               Login
             </button>
             <a
