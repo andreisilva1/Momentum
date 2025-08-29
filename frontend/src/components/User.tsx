@@ -1,9 +1,9 @@
 import { useForm } from "react-hook-form";
 import "./App.css";
 import backgroundImage from "../assets/pexels-fauxels-3183197.jpg";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type FormData = {
   username: string;
@@ -19,7 +19,20 @@ const User = () => {
     formState: { errors },
   } = useForm<FormData>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const deletedUser = location.state?.deleted;
+  const [userDeletedMessage, setUserDeletedMessage] = useState<string | null>(
+    deletedUser || null
+  );
   const [loginPage, setLoginPage] = useState(false);
+  useEffect(() => {
+    if (userDeletedMessage) {
+      const timer = setTimeout(() => {
+        setUserDeletedMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [userDeletedMessage]);
   const login = async (data: FormData) => {
     const params = new URLSearchParams();
     params.append("username", data.email);
@@ -132,6 +145,9 @@ const User = () => {
       <div className="flex shadow-4xl w-[35vw] h-screen z-1 bg-[white] justify-center items-center shadow-lg">
         <form>
           <div className="flex flex-col font-bold text-[#164636]">
+            {userDeletedMessage && (
+              <p className="text-sm font-light">{userDeletedMessage}</p>
+            )}
             {loginPage ? (
               <h1 className="mb-5 mt-3 mx-auto text-2xl">Login</h1>
             ) : (

@@ -51,31 +51,45 @@ class UserService:
             },
         )
 
-    async def update(self, current_user: User, user: UpdateUser):
-        new_user = await self.get(user.username)
-        if not new_user["data"]:
-            new_user = {
-                **user.model_dump(exclude=["password"]),
-                "password_hashed": password_context.hash(user.password),
-                "last_update": datetime.now(),
-            }
-        for key, value in new_user.items():
-            setattr(current_user, key, value)
-        self.session.add(current_user)
-        await self.session.commit()
-        await self.session.refresh(current_user)
+    async def update(self, current_user: User, update_infos: dict):
+        if "email" in update_infos.keys():
+            new_user = await self.get(update_infos["email"])
+            if new_user["data"]:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="The email is already in use.",
+                )
 
-    async def delete(self, current_user: User, password: str):
-        if current_user and password_context.verify(
-            password, current_user.password_hashed
+        if password_context.verify(
+            update_infos["password"], current_user.password_hashed
         ):
-            await self.session.delete(current_user)
-            raise HTTPException(
-                status_code=status.HTTP_202_ACCEPTED,
-                detail=f"User {current_user.username} successfully deleted.",
-            )
+            del update_infos["password"]
+            update_infos["last_update"] = datetime.now()
+            for key, value in update_infos.items():
+                setattr(current_user, key, value)
+            self.session.add(current_user)
+            await self.session.commit()
+            await self.session.refresh(current_user)
+            return {"updated_user": current_user, "ok": True}
         raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Incorrect password."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "The password provided is incorrect.", "ok": False},
+        )
+
+    async def delete(self, current_user: User):
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail={"message": "No User provided.", "ok": False},
+            )
+        await self.session.delete(current_user)
+        await self.session.commit()
+        raise HTTPException(
+            status_code=status.HTTP_202_ACCEPTED,
+            detail={
+                "message": f"User {current_user.username} successfully deleted.",
+                "ok": True,
+            },
         )
 
     async def token(self, email, password):
@@ -99,7 +113,7 @@ class UserService:
         )
         return token
 
-    async def profile(current_user: User):
+    async def profile(self, current_user: User):
         if not current_user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="No user provided"

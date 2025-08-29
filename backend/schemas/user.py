@@ -15,5 +15,6 @@ class ReadUser(BaseUser):
     id: UUID
 
 
-class UpdateUser(BaseModel):
+class UpdateUser(BaseUser):
+    email: str
     password: str

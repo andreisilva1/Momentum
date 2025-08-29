@@ -5,7 +5,7 @@ from pydantic import EmailStr
 
 from backend.database.redis import add_jti_to_blacklist
 from backend.dependencies import UserDep, UserServiceDep
-from backend.schemas.user import CreateUser, ReadUser
+from backend.schemas.user import CreateUser, ReadUser, UpdateUser
 from backend.utils import return_the_access_token
 
 
@@ -25,6 +25,23 @@ async def signup(service: UserServiceDep, user: CreateUser):
 @router.get("/profile")
 async def profile(service: UserServiceDep, current_user: UserDep):
     return await service.profile(current_user)
+
+
+@router.patch("/update")
+async def update(
+    service: UserServiceDep, current_user: UserDep, update_infos: UpdateUser
+):
+    update = {
+        k: v
+        for k, v in update_infos.model_dump(exclude_unset=True).items()
+        if v.strip() != "" and v is not None
+    }
+    return await service.update(current_user, update)
+
+
+@router.delete("/delete")
+async def delete(service: UserServiceDep, current_user: UserDep):
+    return await service.delete(current_user)
 
 
 @router.post("/login")

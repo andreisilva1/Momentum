@@ -1,7 +1,7 @@
 import axios from "axios";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
-
+import profilePicture from "../assets/avatardefault_92824.png";
 const NavBar = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -40,14 +40,24 @@ const NavBar = () => {
   };
   return (
     <nav>
-      <button
-        onClick={logout}
-        className="mt-4 ml-4 pb-2 pt-2 pl-4 pr-4 bg-green-700 text-white font-bold hover:bg-green-950 cursor-pointer"
-      >
-        Logout
-      </button>
-      <button onClick={profile}>Profile</button>
-      <hr className="mt-2" />
+      <div className="flex v-screen justify-between">
+        <img
+          onClick={profile}
+          className="w-12 mt-2 ml-4 hover:opacity-80 cursor-pointer"
+          src={profilePicture}
+          alt="Profile picture"
+        />
+        <p className="my-auto font-light scale-250 mt-5 font-storyscript">
+          Momentum
+        </p>
+        <button
+          onClick={logout}
+          className="mt-4 mb-1 mr-4 pl-4 pr-4 bg-green-700 text-white font-bold hover:bg-green-950 cursor-pointer"
+        >
+          Logout
+        </button>
+      </div>
+      <hr className="mt-2 border-1" />
     </nav>
   );
 };
