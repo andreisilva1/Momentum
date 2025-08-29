@@ -22,3 +22,4 @@ async def get_current_user(
 
 
 UserServiceDep = Annotated[UserService, Depends(create_user_service)]
+UserDep = Annotated[User, Depends(get_current_user)]

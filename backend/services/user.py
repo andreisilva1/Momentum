@@ -98,3 +98,10 @@ class UserService:
             }
         )
         return token
+
+    async def profile(current_user: User):
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="No user provided"
+            )
+        return current_user

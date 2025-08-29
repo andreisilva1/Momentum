@@ -1,5 +1,12 @@
+import NavBar from "./NavBar";
+
 const Home = () => {
-  return <div>You are now logged in.</div>;
+  return (
+    <div>
+      <NavBar />
+      You are now logged in.
+    </div>
+  );
 };
 
 export default Home;
