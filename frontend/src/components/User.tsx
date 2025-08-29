@@ -2,6 +2,8 @@ import { useForm } from "react-hook-form";
 import "./App.css";
 import backgroundImage from "../assets/pexels-fauxels-3183197.jpg";
 import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 type FormData = {
   username: string;
@@ -16,8 +18,72 @@ const User = () => {
     setError,
     formState: { errors },
   } = useForm<FormData>();
-  const login = async (data: FormData) => {};
-  const signup = async (data: FormData) => {};
+  const navigate = useNavigate();
+  const login = async (data: FormData) => {
+    const params = new URLSearchParams();
+    params.append("username", data.email);
+    params.append("password", data.password);
+    const userLogin = await axios.post(
+      "http://localhost:8000/users/login",
+      params,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+    if (userLogin.data.ok) {
+      localStorage.setItem("token", userLogin.data.access_token);
+      navigate("/home");
+    } else {
+      setError("confirmPassword", {
+        type: "manual",
+        message: "A error occurred. Try again after a few moments.",
+      });
+      setTimeout(() => {
+        setError("confirmPassword", {
+          type: "manual",
+          message: "",
+        });
+      }, 3000);
+    }
+  };
+  const signup = async (data: FormData) => {
+    if (data.password === data.confirmPassword) {
+      const user = await axios.get(
+        `http://localhost:8000/users/?email=${data.email}`
+      );
+      console.log(user.data);
+      if (!user.data.ok) {
+        const response = await axios.post(
+          "http://localhost:8000/users/signup",
+          {
+            username: data.username,
+            email: data.email,
+            password: data.password,
+          },
+          {
+            headers: {
+              Authorization: "application/json",
+            },
+          }
+        );
+
+        if (response.data.detail.ok) {
+          console.log("VOU FAZER LOGIN: ", response.data);
+          login(data);
+        }
+      } else {
+        setError("email", {
+          type: "manual",
+          message: "Already exists a user with this email. Try another.",
+        });
+        setTimeout(() => {
+          setError("email", { type: "manual", message: "" });
+        }, 3000);
+      }
+    }
+  };
   const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="flex items-center justify-center h-screen bg-black overflow-hidden">
@@ -65,15 +131,17 @@ const User = () => {
             <input
               {...register("username", { required: "Username required" })}
               type="text"
+              id="username"
               name="username"
               placeholder="Enter your username"
               className="p-2 rounded-lg shadow-2xl border-3 mt-2 mb-5"
             />
-            <label htmlFor="e-mail">E-mail</label>
+            <label htmlFor="email">E-mail</label>
             <input
               {...register("email", { required: "E-mail required" })}
               type="text"
-              name="e-mail"
+              id="email"
+              name="email"
               placeholder="Enter your e-mail"
               className="p-2 rounded-lg shadow-2xl border-3 mt-2 mb-5"
             />
@@ -81,7 +149,8 @@ const User = () => {
             <input
               {...register("password", { required: "Password required" })}
               type={showPassword ? "text" : "password"}
-              name="Password"
+              id="password"
+              name="password"
               placeholder="Enter your password"
               className="p-2 rounded-lg shadow-2xl border-3 mt-2 mb-5"
             />
@@ -91,10 +160,12 @@ const User = () => {
                 required: "Confirm Password required",
               })}
               type={showPassword ? "text" : "password"}
+              id="confirmPassword"
               name="confirmPassword"
               placeholder="Confirm your password"
               className="p-2 rounded-lg shadow-2xl border-3 mt-2 mb-5"
             />
+            {errors.confirmPassword && <p>{errors.confirmPassword.message}</p>}
             <button
               type="button"
               className="pt-2 pb-2 pl-4 pr-4 bg-red-700 text-white mb-2 hover:bg-red-950 cursor-pointer"

@@ -16,15 +16,16 @@ class UserService:
     def __init__(self, session):
         self.session = session
 
-    async def get(self, username: str):
-        user = await self.session.execute(select(User).where(User.username == username))
+    async def get(self, email: str):
+        user = await self.session.execute(select(User).where(User.email == email))
         user = user.scalar_one_or_none()
-        return user
+        ok = True if user else False
+        return {"data": user, "ok": ok}
 
     async def add(self, user: CreateUser):
-        new_user = await self.get(user.username)
+        new_user = await self.get(user.email)
         print(new_user)
-        if not new_user:
+        if not new_user["data"]:
             new_user = User(
                 **user.model_dump(exclude=["password"]),
                 password_hashed=password_context.hash(user.password),
@@ -37,16 +38,22 @@ class UserService:
             await self.session.refresh(new_user)
             raise HTTPException(
                 status_code=status.HTTP_201_CREATED,
-                detail=f"User {new_user.username} successfully created.",
+                detail={
+                    "message": f"User {new_user.username} successfully created.",
+                    "ok": True,
+                },
             )
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="Already exists a user with this username",
+            detail={
+                "message": "Already exists a user with this email. Try another.",
+                "ok": False,
+            },
         )
 
     async def update(self, current_user: User, user: UpdateUser):
         new_user = await self.get(user.username)
-        if not new_user:
+        if not new_user["data"]:
             new_user = {
                 **user.model_dump(exclude=["password"]),
                 "password_hashed": password_context.hash(user.password),
@@ -60,7 +67,7 @@ class UserService:
 
     async def delete(self, current_user: User, password: str):
         if current_user and password_context.verify(
-            current_user.password_hashed, password
+            password, current_user.password_hashed
         ):
             await self.session.delete(current_user)
             raise HTTPException(
@@ -71,21 +78,22 @@ class UserService:
             status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Incorrect password."
         )
 
-    async def token(self, username, password):
-        user = await self.get(username)
-        if not user or not password_context.verify(user.password_hashed, password):
+    async def token(self, email, password):
+        user = await self.get(email)
+
+        if not user["data"] or not password_context.verify(
+            password, user["data"].password_hashed
+        ):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No user found with the provided username.",
+                detail="No user found with the provided email.",
             )
 
         token = generate_access_token(
             {
-                {
-                    "user": {
-                        "username": username,
-                        "id": str(user.id),
-                    }
+                "user": {
+                    "username": email,
+                    "id": str(user["data"].id),
                 }
             }
         )

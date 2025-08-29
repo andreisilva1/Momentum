@@ -11,7 +11,7 @@ class User(SQLModel, table=True):
         sa_column=Column(postgresql.UUID, default=uuid4(), primary_key=True, index=True)
     )
     username: str
-    email: EmailStr
+    email: EmailStr = Field(unique=True)
     password_hashed: str
     created_at: datetime = Field(default=datetime.now())
     last_update: datetime
