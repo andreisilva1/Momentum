@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database.models import User
 from backend.database.session import get_session
+from backend.services.organization import OrganizationService
 from backend.services.user import UserService
 from backend.utils import return_the_access_token
 
@@ -21,5 +22,12 @@ async def get_current_user(
     return await session.get(User, UUID(data["user"]["id"]))
 
 
+def create_organization_service(session: SessionDep):
+    return OrganizationService(session)
+
+
 UserServiceDep = Annotated[UserService, Depends(create_user_service)]
+OrganizationServiceDep = Annotated[
+    OrganizationService, Depends(create_organization_service)
+]
 UserDep = Annotated[User, Depends(get_current_user)]

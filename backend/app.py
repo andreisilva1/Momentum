@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.database.session import create_db_tables
-from backend.router import user
+from backend.router import organization, user
 from scalar_fastapi import get_scalar_api_reference
 
 
@@ -15,6 +15,7 @@ async def lifespan_handler(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan_handler)
 app.include_router(user.router)
+app.include_router(organization.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # ou restrinja p/ ["http://localhost:5173"]

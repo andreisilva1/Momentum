@@ -41,7 +41,7 @@ class User(SQLModel, table=True):
         sa_relationship_kwargs={"lazy": "selectin", "cascade": "all, delete-orphan"},
     )
     tasks_attached: List["Task"] = Relationship(
-        back_populates="tasks_attached", link_model=TasksToUsers
+        back_populates="users_attached", link_model=TasksToUsers
     )
     created_organizations: List["Organization"] = Relationship(
         back_populates="creator",
@@ -64,7 +64,7 @@ class Task(SQLModel, table=True):
     )
     creator_id: UUID = Field(foreign_key="user.id")
     creator: User = Relationship(
-        back_populates="tasks", sa_relationship_kwargs={"lazy": "selectin"}
+        back_populates="tasks_created", sa_relationship_kwargs={"lazy": "selectin"}
     )
     title: str
     tag: Tags
