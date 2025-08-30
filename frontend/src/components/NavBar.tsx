@@ -2,6 +2,7 @@ import axios from "axios";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 import profilePicture from "../assets/avatardefault_92824.png";
+
 const NavBar = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -12,11 +13,8 @@ const NavBar = () => {
       },
     });
     if (response.data) {
-      navigate("/profile", {
-        state: {
-          data: response.data,
-        },
-      });
+      localStorage.setItem("currentUser", JSON.stringify(response.data));
+      navigate("/profile");
     } else {
       console.log("Error when loading the profile");
     }

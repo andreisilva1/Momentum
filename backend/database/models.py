@@ -15,3 +15,4 @@ class User(SQLModel, table=True):
     password_hashed: str
     created_at: datetime = Field(default=datetime.now())
     last_update: datetime
+    profile_picture: str = Field(default=None, nullable=True)

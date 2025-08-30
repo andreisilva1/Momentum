@@ -6,7 +6,7 @@ from backend.database.models import User
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
 
-from backend.schemas.user import CreateUser, UpdateUser
+from backend.schemas.user import CreateUser
 from backend.utils import generate_access_token
 
 password_context = CryptContext(deprecated="auto", schemes="bcrypt")
@@ -52,6 +52,7 @@ class UserService:
         )
 
     async def update(self, current_user: User, update_infos: dict):
+        print(update_infos)
         if "email" in update_infos.keys():
             new_user = await self.get(update_infos["email"])
             if new_user["data"]:

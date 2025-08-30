@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr
 
@@ -15,6 +16,8 @@ class ReadUser(BaseUser):
     id: UUID
 
 
-class UpdateUser(BaseUser):
-    email: str
+class UpdateUser(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
     password: str
+    profile_picture: Optional[str] = None
