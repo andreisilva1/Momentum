@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from fastapi import HTTPException, status
-from backend.database.models import Organization, User
+from backend.database.models import Organization, OrganizationsToUsers, User
 from backend.schemas.organization import CreateOrganization
 from uuid import UUID, uuid4
 from datetime import datetime
@@ -23,7 +23,6 @@ class OrganizationService:
                 detail="No organizations found with the provided title",
             )
         organizations_by_search = organizations.scalars().all()
-        return organizations_by_search
         organizations_by_search = [
             organization
             for organization in organizations
@@ -61,11 +60,13 @@ class OrganizationService:
             creator_id=current_user.id,
             created_at=datetime.now(),
         )
-        new_organization.participants.append(current_user)
-
+        new_organization_user_link = OrganizationsToUsers(
+            user_id=current_user.id, organization_id=new_organization.id
+        )
         self.session.add(new_organization)
+        self.session.add(new_organization_user_link)
         await self.session.commit()
-        await self.session.refresh(new_organization)
+
         return {
             "detail": "Organization created successfully",
             "organization": new_organization,

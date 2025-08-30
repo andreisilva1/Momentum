@@ -5,6 +5,13 @@ import jwt
 from backend.database.config import security_settings as settings
 from backend.core.security import oauth2_scheme
 from backend.database.redis import is_jti_blacklisted
+from passlib.context import CryptContext
+
+password_context = CryptContext(deprecated="auto", schemes="bcrypt")
+
+
+def verify_password(password, hashed_password):
+    return password_context.verify(password, hashed_password)
 
 
 def generate_access_token(data: dict):

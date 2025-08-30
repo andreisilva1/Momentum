@@ -49,7 +49,9 @@ class User(SQLModel, table=True):
     )
 
     in_organizations: List["Organization"] = Relationship(
-        back_populates="participants", link_model=OrganizationsToUsers
+        back_populates="participants",
+        link_model=OrganizationsToUsers,
+        sa_relationship_kwargs={"lazy": "selectin"},
     )
 
     created_boards: List["Board"] = Relationship(
@@ -71,7 +73,9 @@ class Task(SQLModel, table=True):
     created_at: datetime = Field(default=datetime.now())
     limit_date: datetime = Field(default=(datetime.now() + timedelta(days=14)))
     users_attached: List[User] = Relationship(
-        back_populates="tasks_attached", link_model=TasksToUsers
+        back_populates="tasks_attached",
+        link_model=TasksToUsers,
+        sa_relationship_kwargs={"lazy": "selectin"},
     )
 
 
@@ -86,7 +90,9 @@ class Organization(SQLModel, table=True):
         sa_relationship_kwargs={"lazy": "selectin"},
     )
     participants: List["User"] = Relationship(
-        back_populates="in_organizations", link_model=OrganizationsToUsers
+        back_populates="in_organizations",
+        link_model=OrganizationsToUsers,
+        sa_relationship_kwargs={"lazy": "selectin"},
     )
     org_boards: List["Board"] = Relationship(
         back_populates="organization",
