@@ -36,12 +36,14 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default=datetime.now())
     last_update: datetime
     profile_picture: str = Field(default=None, nullable=True)
-    tasks_created: List["Task"] = Relationship(
+    created_tasks: List["Task"] = Relationship(
         back_populates="creator",
         sa_relationship_kwargs={"lazy": "selectin", "cascade": "all, delete-orphan"},
     )
     tasks_attached: List["Task"] = Relationship(
-        back_populates="users_attached", link_model=TasksToUsers
+        back_populates="users_attached",
+        link_model=TasksToUsers,
+        sa_relationship_kwargs={"lazy": "selectin"},
     )
     created_organizations: List["Organization"] = Relationship(
         back_populates="creator",
@@ -66,10 +68,14 @@ class Task(SQLModel, table=True):
     )
     creator_id: UUID = Field(foreign_key="user.id")
     creator: User = Relationship(
-        back_populates="tasks_created", sa_relationship_kwargs={"lazy": "selectin"}
+        back_populates="created_tasks", sa_relationship_kwargs={"lazy": "selectin"}
     )
     title: str
     tag: Tags
+    board_id: UUID = Field(foreign_key="board.id")
+    board: "Board" = Relationship(
+        back_populates="tasks", sa_relationship_kwargs={"lazy": "selectin"}
+    )
     created_at: datetime = Field(default=datetime.now())
     limit_date: datetime = Field(default=(datetime.now() + timedelta(days=14)))
     users_attached: List[User] = Relationship(
@@ -112,6 +118,10 @@ class Board(SQLModel, table=True):
     organization_id: UUID = Field(foreign_key="organization.id")
     organization: Organization = Relationship(
         back_populates="org_boards", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+    tasks: List[Task] = Relationship(
+        back_populates="board",
+        sa_relationship_kwargs={"lazy": "selectin", "cascade": "all, delete-orphan"},
     )
     title: str
     created_at: datetime = Field(default=datetime.now())

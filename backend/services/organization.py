@@ -97,4 +97,4 @@ class OrganizationService:
             title = organization.title
             await self.session.delete(organization)
             await self.session.commit()
-            return {"message": f"Organization {title} successfully deleted"}
+            return {"detail": f"Organization {title} successfully deleted"}

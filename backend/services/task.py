@@ -1,0 +1,108 @@
+from datetime import datetime, timedelta
+from uuid import UUID, uuid4
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
+from fastapi import HTTPException, status
+from backend.database.models import Tags, Task, TasksToUsers, User
+from backend.schemas.task import CreateTask, UpdateTask
+from backend.utils import verify_password
+
+
+class TaskService:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get_by_search(self, search: str, current_user: User):
+        all_tasks = await self.session.execute(
+            select(Task).where(Task.title.ilike(f"%{search}%"))
+        )
+
+        return [
+            task
+            for task in all_tasks.scalars().all()
+            if current_user in task.users_attached
+        ]
+
+    async def add(
+        self,
+        board_id: UUID,
+        create_task: CreateTask,
+        current_user: User,
+        limit_date: int,
+        tag: Tags,
+    ):
+        if any(
+            board_id == board.id
+            for org in current_user.in_organizations
+            for board in org.org_boards
+        ):
+            new_task = Task(
+                **create_task.model_dump(),
+                id=uuid4(),
+                creator_id=current_user.id,
+                created_at=datetime.now(),
+                limit_date=datetime.now() + timedelta(days=limit_date),
+                tag=tag,
+                board_id=board_id,
+            )
+            self.session.add(new_task)
+            new_task_to_user = TasksToUsers(
+                task_id=new_task.id, user_id=current_user.id
+            )
+            self.session.add(new_task_to_user)
+            await self.session.commit()
+            return {"detail": "task successfully created.", "task": new_task}
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="No board found."
+        )
+
+    async def update(
+        self,
+        task_id,
+        current_user: User,
+        update_task: UpdateTask,
+        tag: Tags,
+        limit_date: int,
+    ):
+        updated = False
+        task = await self.session.execute(select(Task).where(Task.id == task_id))
+        task = task.scalar_one_or_none()
+        update_task.title = update_task.title if update_task.title else task.title
+        if task and any(task_id == task.id for task in current_user.tasks_attached):
+            new_task = {
+                **update_task.model_dump(),
+                "limit_date": task.limit_date + timedelta(days=limit_date),
+                "tag": tag if tag else task.tag,
+            }
+            for key, value in new_task.items():
+                if hasattr(task, key):
+                    current_value = getattr(task, key)
+                    if current_value != value:
+                        setattr(task, key, value)
+                        updated = True
+
+            if not updated:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="No update informations provided.",
+                )
+
+            self.session.add(task)
+            await self.session.commit()
+            await self.session.refresh(task)
+            return {"detail": "Task updated.", "new_task": task}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No task found."
+        )
+
+    async def delete(self, task_id, current_user: User, password: str):
+        if verify_password(password, current_user.password_hashed) and any(
+            task_id == task.id for task in current_user.tasks_attached
+        ):
+            await self.session.delete(await self.session.get(Task, task_id))
+            await self.session.commit()
+            return {"detail": "Task successfully deleted"}
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="A error occurred. Verify the provided informations.",
+        )

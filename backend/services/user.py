@@ -74,14 +74,14 @@ class UserService:
             return {"updated_user": current_user, "ok": True}
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail={"message": "The password provided is incorrect.", "ok": False},
+            detail={"detail": "The password provided is incorrect.", "ok": False},
         )
 
     async def delete(self, current_user: User):
         if not current_user:
             raise HTTPException(
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                detail={"message": "No User provided.", "ok": False},
+                detail={"detail": "No User provided.", "ok": False},
             )
         await self.session.delete(current_user)
         await self.session.commit()
