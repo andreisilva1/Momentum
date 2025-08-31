@@ -55,7 +55,7 @@ class BoardService:
         )
         self.session.add(new_board)
         await self.session.commit()
-        return {"detail": "Board successfully created", "board": new_board}
+        return {"ok": True, "detail": "Board successfully created", "board": new_board}
 
     async def update(self, board_id: UUID, title: str, current_user: User):
         board = await self.session.execute(
@@ -84,7 +84,10 @@ class BoardService:
             deleted_board = await self.session.get(Board, board_id)
             await self.session.delete(deleted_board)
             await self.session.commit()
-            return {"detail": f'Board "{deleted_board.title}" successfully removed.'}
+            return {
+                "ok": True,
+                "detail": f'Board "{deleted_board.title}" successfully removed.',
+            }
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="A error occurred. Invalid board or you don't have the permissions to do that.",

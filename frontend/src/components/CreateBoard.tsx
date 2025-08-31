@@ -1,12 +1,13 @@
 import axios from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type FormData = {
   title: string;
 };
-const CreateOrganization = () => {
+
+const CreateBoard = () => {
   const navigate = useNavigate();
   const [successMsg, setSuccessMsg] = useState(false);
   const {
@@ -15,16 +16,18 @@ const CreateOrganization = () => {
     setError,
     formState: { errors },
   } = useForm<FormData>();
-
-  const [newOrganization, setNewOrganization] = useState();
+  const [newBoard, setNewBoard] = useState();
   const [name, setName] = useState("");
-  const handleOrganization = async (organization: any) => {
-    navigate("/organization", { state: organization });
+  const location = useLocation();
+  const organization_id = location.state as Record<string, any>;
+
+  const handleBoard = async (board: any) => {
+    navigate("/board", { state: board });
   };
   const create = async (data: FormData) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/organization/create",
+        `http://localhost:8000/board/create?organization_id=${organization_id}`,
         {
           title: data.title,
         },
@@ -35,14 +38,16 @@ const CreateOrganization = () => {
         }
       );
       if (response.data.ok) {
-        setNewOrganization(response.data.organization);
-        setName(response.data.organization.title);
+        setNewBoard(response.data.board);
+        setName(response.data.board.title);
         setSuccessMsg(true);
       }
     } catch (error: any) {
+      console.log(organization_id);
       setError("title", {
         type: "manual",
-        message: "You already create a organization with this name.",
+        message:
+          "Error when creating the board. Try again after a few moments.",
       });
       setTimeout(() => {
         setError("title", { type: "manual", message: "" });
@@ -69,16 +74,15 @@ const CreateOrganization = () => {
             onClick={handleSubmit(create)}
             className="font-bold text-white bg-green-700 pl-4 pr-4 pb-2 pt-2 mb-2 rounded-lg hover:bg-green-950 cursor-pointer"
           >
-            Create Organization
+            Create Board
           </button>
         </div>
         {successMsg && (
           <p
             className="hover:underline hover:text-blue-800 cursor-pointer"
-            onClick={() => handleOrganization(newOrganization)}
+            onClick={() => handleBoard(newBoard)}
           >
-            Organization {name} created successfully, to access already, click
-            here
+            Board {name} created successfully, to access already, click here
           </p>
         )}
         {errors.title && <p>{errors.title.message}</p>}
@@ -86,4 +90,5 @@ const CreateOrganization = () => {
     </div>
   );
 };
-export default CreateOrganization;
+
+export default CreateBoard;

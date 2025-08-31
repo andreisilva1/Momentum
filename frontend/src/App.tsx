@@ -4,6 +4,7 @@ import Home from "./components/Home";
 import Profile from "./components/Profile";
 import Organization from "./components/Organization";
 import CreateOrganization from "./components/CreateOrganization";
+import CreateBoard from "./components/CreateBoard";
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
           path="/organization/create"
           element={<CreateOrganization />}
         ></Route>
+        <Route path="/board/create" element={<CreateBoard />}></Route>
       </Routes>
     </Router>
   );
