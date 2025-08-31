@@ -42,6 +42,7 @@ const Home = () => {
             Organizations
           </h1>
           <button
+            onClick={() => navigate("/organization/create")}
             className="font-bold text-white bg-green-700 pl-4 pr-4 pb-2 pt-2 mb-2 rounded-lg mx-auto hover:bg-green-950 cursor-pointer"
             style={{
               width: "25vw",

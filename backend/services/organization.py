@@ -96,7 +96,10 @@ class OrganizationService:
         if existent_organization:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="This name is already in use in a organization created by you.",
+                detail={
+                    "ok": False,
+                    "detail": "This name is already in use in a organization created by you.",
+                },
             )
         new_organization = Organization(
             **organization.model_dump(),
@@ -112,6 +115,7 @@ class OrganizationService:
         await self.session.commit()
 
         return {
+            "ok": True,
             "detail": "Organization created successfully",
             "organization": new_organization,
         }

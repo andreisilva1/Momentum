@@ -3,6 +3,7 @@ import User from "./components/User";
 import Home from "./components/Home";
 import Profile from "./components/Profile";
 import Organization from "./components/Organization";
+import CreateOrganization from "./components/CreateOrganization";
 
 const App = () => {
   return (
@@ -12,6 +13,10 @@ const App = () => {
         <Route path="/home" element={<Home />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
         <Route path="/organization" element={<Organization />}></Route>
+        <Route
+          path="/organization/create"
+          element={<CreateOrganization />}
+        ></Route>
       </Routes>
     </Router>
   );

@@ -17,7 +17,6 @@ const Organization = () => {
   }
   const [boards, setBoards] = useState<any[]>([]);
   const [participants, setParticipants] = useState<any[]>([]);
-  const [details, setDetails] = useState<any[]>([]);
 
   const handleBoards = async () => {
     const response = await axios.get(
@@ -51,7 +50,7 @@ const Organization = () => {
   };
 
   return (
-    <div className="flex flex-col items-center h-screen">
+    <div className="flex-col items-center h-screen">
       <div className="border-2 p-5 m-2">
         <h1 className="w-full font-bold text-2xl mb-5">{organization.title}</h1>
         <nav>
