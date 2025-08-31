@@ -48,7 +48,18 @@ const User = () => {
     );
     if (userLogin.data.ok) {
       localStorage.setItem("token", userLogin.data.access_token);
-      navigate("/home");
+      const response = await axios.get("http://localhost:8000/users/profile", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (response.data) {
+        localStorage.setItem("currentUser", JSON.stringify(response.data));
+        navigate("/home");
+      } else {
+        console.log("Error when loading the profile");
+      }
+      
     } else {
       setError("confirmPassword", {
         type: "manual",
@@ -84,7 +95,6 @@ const User = () => {
         );
 
         if (response.data.detail.ok) {
-          console.log("VOU FAZER LOGIN: ", response.data);
           login(data);
         }
       } else {

@@ -1,23 +1,17 @@
 import axios from "axios";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
-import profilePicture from "../assets/avatardefault_92824.png";
+import profileDefault from "../assets/avatardefault_92824.png";
 
 const NavBar = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("currentUser");
+  let profilePicture = profileDefault;
+  if (user !== null) {
+    profilePicture = JSON.parse(user).profile_picture;
+  }
   const profile = async () => {
-    const response = await axios.get("http://localhost:8000/users/profile", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.data) {
-      localStorage.setItem("currentUser", JSON.stringify(response.data));
-      navigate("/profile");
-    } else {
-      console.log("Error when loading the profile");
-    }
+    navigate("/profile");
   };
   const logout = async () => {
     const token = localStorage.getItem("token");
@@ -41,7 +35,7 @@ const NavBar = () => {
       <div className="flex v-screen justify-between">
         <img
           onClick={profile}
-          className="w-12 mt-2 ml-4 hover:opacity-80 cursor-pointer"
+          className="mt-2 ml-4 w-[50px] h-[50px] rounded-full hover:opacity-80 cursor-pointer"
           src={profilePicture}
           alt="Profile picture"
         />

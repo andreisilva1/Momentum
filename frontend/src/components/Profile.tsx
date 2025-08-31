@@ -72,11 +72,6 @@ const Profile = () => {
     );
     if (response.data.ok) {
       navigate("/home");
-      // localStorage.clear();
-      // navigate("/", {
-      //   state: { deleted: `User ${user.email} updated successfully.` },
-      // });
-      console.log(response.data);
     }
   };
   return (
