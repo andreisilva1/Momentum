@@ -19,6 +19,20 @@ async def get_all_organizations(current_user: UserDep, service: OrganizationServ
     return await service.get_all(current_user)
 
 
+@router.get("/get_all_boards")
+async def get_organization_boards(
+    organization_id: UUID, current_user: UserDep, service: OrganizationServiceDep
+):
+    return await service.get_boards(organization_id, current_user)
+
+
+@router.get("/get_all_participants")
+async def get_organization_participants(
+    organization_id: UUID, current_user: UserDep, service: OrganizationServiceDep
+):
+    return await service.get_participants(organization_id, current_user)
+
+
 @router.post("/create")
 async def create_organization(
     current_user: UserDep,

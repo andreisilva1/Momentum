@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from fastapi import HTTPException, status
-from backend.database.models import Organization, OrganizationsToUsers, User
+from backend.database.models import Board, Organization, OrganizationsToUsers, User
 from backend.schemas.organization import CreateOrganization
 from uuid import UUID, uuid4
 from datetime import datetime
@@ -11,6 +11,17 @@ class OrganizationService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def get_organizations_by_organization_and_user_id(
+        self, organization_id: UUID, current_user: User
+    ):
+        organizations = await self.session.execute(
+            select(Organization).where(
+                Organization.id == organization_id,
+                Organization.participants.any(User.id == current_user.id),
+            )
+        )
+        return organizations
+
     async def get_all(self, current_user: User):
         organizations = await self.session.execute(
             select(Organization).where(
@@ -18,6 +29,31 @@ class OrganizationService:
             )
         )
         return organizations.scalars().all()
+
+    async def get_boards(self, organization_id: UUID, current_user: User):
+        organizations = await self.get_organizations_by_organization_and_user_id(
+            organization_id, current_user
+        )
+        if organizations:
+            return [
+                organization.org_boards
+                for organization in organizations.scalars().all()
+            ][0]
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No boards found with the provided ID.",
+        )
+
+    async def get_participants(self, organization_id: UUID, current_user: User):
+        organization = await self.get_organizations_by_organization_and_user_id(
+            organization_id, current_user
+        )
+        if organization:
+            return organization.scalar_one_or_none().participants
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No organization with that ID has been found.",
+        )
 
     async def get_by_search(self, search: str, current_user: User):
         organizations = await self.session.execute(

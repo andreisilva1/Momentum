@@ -3,19 +3,20 @@ import profileDefault from "../assets/avatardefault_92824.png";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+
 type FormData = {
   username: string;
   email: string;
   password: string;
 };
 const Profile = () => {
-  const user = JSON.parse(localStorage.getItem("currentUser") ?? "{}");
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("currentUser") ?? "{}")
+  );
 
   const [editProfile, setEditProfile] = useState(false);
-  const [profilePicture, setProfilePicture] = useState(
-    user.profile_picture || profileDefault
-  );
-  const [previewProfile, setPreviewProfile] = useState(profilePicture);
+
+  const [previewProfile, setPreviewProfile] = useState(user.profile_picture);
   const {
     register,
     handleSubmit,
@@ -71,6 +72,13 @@ const Profile = () => {
       }
     );
     if (response.data.ok) {
+      const updatedUser = {
+        ...user,
+        ...data,
+        profile_picture: newProfilePicture,
+      };
+      setUser(updatedUser);
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
       navigate("/home");
     }
   };
@@ -100,7 +108,7 @@ const Profile = () => {
           ) : (
             <div>
               <img
-                src={profilePicture}
+                src={user.profile_picture || profileDefault}
                 className="w-[250px] h-[250px] rounded-full object-cover"
                 alt="Foto de usuário"
               />
