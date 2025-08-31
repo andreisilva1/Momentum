@@ -25,6 +25,7 @@ const NavBar = () => {
       }
     );
     if (response.data.ok) {
+      localStorage.clear();
       navigate("/");
     } else {
       console.log("Error when logout");

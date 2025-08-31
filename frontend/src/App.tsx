@@ -5,20 +5,54 @@ import Profile from "./components/Profile";
 import Organization from "./components/Organization";
 import CreateOrganization from "./components/CreateOrganization";
 import CreateBoard from "./components/CreateBoard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<User />}></Route>
-        <Route path="/home" element={<Home />}></Route>
-        <Route path="/profile" element={<Profile />}></Route>
-        <Route path="/organization" element={<Organization />}></Route>
+        <Route path="/" element={<User />} />
+
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization"
+          element={
+            <ProtectedRoute>
+              <Organization />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/organization/create"
-          element={<CreateOrganization />}
-        ></Route>
-        <Route path="/board/create" element={<CreateBoard />}></Route>
+          element={
+            <ProtectedRoute>
+              <CreateOrganization />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/board/create"
+          element={
+            <ProtectedRoute>
+              <CreateBoard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
