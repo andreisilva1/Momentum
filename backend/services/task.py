@@ -12,6 +12,12 @@ class TaskService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def get_all(self, current_user: User):
+        tasks = await self.session.execute(
+            select(Task).where(Task.users_attached.any(User.id == current_user.id))
+        )
+        return tasks.scalars().all()
+
     async def get_by_search(self, search: str, current_user: User):
         all_tasks = await self.session.execute(
             select(Task).where(Task.title.ilike(f"%{search}%"))

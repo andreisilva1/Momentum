@@ -7,6 +7,16 @@ from backend.schemas.board import CreateBoard, UpdateBoard
 router = APIRouter(prefix="/board", tags=["Board"])
 
 
+@router.get("/get")
+async def get_by_search(current_user: UserDep, service: BoardServiceDep, search: str):
+    return await service.get_by_search(search, current_user)
+
+
+@router.get("/get_all")
+async def get_all_boards(current_user: UserDep, service: BoardServiceDep):
+    return await service.get_all(current_user)
+
+
 @router.post("/create")
 async def create_board(
     organization_id: UUID,
@@ -15,11 +25,6 @@ async def create_board(
     board: CreateBoard,
 ):
     return await service.add(organization_id, board, current_user)
-
-
-@router.get("/get")
-async def get_by_search(current_user: UserDep, service: BoardServiceDep, search: str):
-    return await service.get_by_search(search, current_user)
 
 
 @router.patch("/update")

@@ -8,9 +8,14 @@ from backend.schemas.task import CreateTask, UpdateTask
 router = APIRouter(prefix="/task", tags=["Task"])
 
 
-@router.post("/get")
+@router.get("/get")
 async def get_tasks(search: str, service: TaskServiceDep, current_user: UserDep):
     return await service.get_by_search(search, current_user)
+
+
+@router.get("/get_all")
+async def get_all_tasks(current_user: UserDep, service: TaskServiceDep):
+    return await service.get_all(current_user)
 
 
 @router.post("/create")

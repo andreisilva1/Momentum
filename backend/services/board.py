@@ -13,6 +13,13 @@ class BoardService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def get_all(self, current_user: User):
+        boards = await self.session.execute(
+            select(Board).where(Board.creator_id == current_user.id)
+        )
+
+        return boards.scalars().all()
+
     async def get_by_search(self, search: str, current_user: User):
         boards = await self.session.execute(
             select(Board).where(

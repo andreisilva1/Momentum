@@ -11,6 +11,14 @@ class OrganizationService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def get_all(self, current_user: User):
+        organizations = await self.session.execute(
+            select(Organization).where(
+                Organization.participants.any(User.id == current_user.id)
+            )
+        )
+        return organizations.scalars().all()
+
     async def get_by_search(self, search: str, current_user: User):
         organizations = await self.session.execute(
             select(Organization).where(
