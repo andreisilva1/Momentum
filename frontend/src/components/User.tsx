@@ -59,7 +59,6 @@ const User = () => {
       } else {
         console.log("Error when loading the profile");
       }
-      
     } else {
       setError("confirmPassword", {
         type: "manual",
@@ -241,7 +240,7 @@ const User = () => {
               className="pt-2 pb-2 pl-4 pr-4 bg-red-700 text-white mb-2 hover:bg-red-950 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? "Show Password" : "Hide Password"}
+              {showPassword ? "Hide Password" : "Show Password"}
             </button>
             {loginPage ? (
               <button

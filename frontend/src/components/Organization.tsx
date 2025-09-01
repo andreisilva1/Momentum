@@ -126,7 +126,12 @@ const Organization = () => {
             <div>
               <button
                 onClick={() =>
-                  navigate("/board/create", { state: organization.id })
+                  navigate("/board/create", {
+                    state: {
+                      organization_id: organization.id,
+                      organization_name: organization.title,
+                    },
+                  })
                 }
                 className="bg-green-700 font-bold pl-2 pr-2 pt-1 pb-1 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-green-950 cursor-pointer"
               >

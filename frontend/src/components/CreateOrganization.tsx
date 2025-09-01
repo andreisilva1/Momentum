@@ -77,7 +77,7 @@ const CreateOrganization = () => {
             className="hover:underline hover:text-blue-800 cursor-pointer"
             onClick={() => handleOrganization(newOrganization)}
           >
-            Organization {name} created successfully, to access already, click
+            Organization "{name}" created successfully, to access already, click
             here
           </p>
         )}

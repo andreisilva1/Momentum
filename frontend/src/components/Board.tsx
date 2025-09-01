@@ -37,7 +37,12 @@ const Board = () => {
 
   const deleteTask = async (task_id: any) => {
     const response = await axios.delete(
-      `http://localhost:8000/task/delete?task_id=${task_id}&password=${passwordConfirm}`
+      `http://localhost:8000/task/delete?task_id=${task_id}&password=${passwordConfirm}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
     );
     if (response.data.ok) {
       setDeleteMsg(true);
@@ -111,7 +116,11 @@ const Board = () => {
           {options.tasks && (
             <div>
               <button
-                onClick={() => navigate("/task/create", { state: board.id })}
+                onClick={() =>
+                  navigate("/task/create", {
+                    state: { board_id: board.id, board_name: board.title },
+                  })
+                }
                 className="bg-green-700 font-bold pl-2 pr-2 pt-1 pb-1 mr-3 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-green-950 cursor-pointer"
               >
                 Create new task
@@ -157,6 +166,16 @@ const Board = () => {
                       <h1>{task.title}</h1>
                       <p className="text-sm font-medium">
                         Status: {task.status}
+                      </p>
+                      <p
+                        className={
+                          new Date() < task.limit_date
+                            ? "text-sm font-bold mt-4 text-red-700"
+                            : "text-sm font-bold mt-4 text-green-700"
+                        }
+                      >
+                        Limit date:{" "}
+                        {new Date(task.limit_date).toLocaleDateString()}
                       </p>
                     </div>
 

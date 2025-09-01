@@ -58,7 +58,11 @@ class TaskService:
             )
             self.session.add(new_task_to_user)
             await self.session.commit()
-            return {"detail": "task successfully created.", "task": new_task}
+            return {
+                "ok": True,
+                "detail": "task successfully created.",
+                "task": new_task,
+            }
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="No board found."
         )
@@ -107,7 +111,7 @@ class TaskService:
         ):
             await self.session.delete(await self.session.get(Task, task_id))
             await self.session.commit()
-            return {"detail": "Task successfully deleted"}
+            return {"ok": True, "detail": "Task successfully deleted"}
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="A error occurred. Verify the provided informations.",
