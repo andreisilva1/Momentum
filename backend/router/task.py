@@ -1,7 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter
 
-from backend.database.models import Tags
+from backend.database.models import Status, Tags
 from backend.dependencies import TaskServiceDep, UserDep
 from backend.schemas.task import CreateTask, UpdateTask
 
@@ -24,10 +24,10 @@ async def create_task(
     service: TaskServiceDep,
     current_user: UserDep,
     create_task: CreateTask,
-    limit_date: int,
     tag: Tags,
+    limit_date: int | None = 15,
 ):
-    return await service.add(board_id, create_task, current_user, limit_date, tag)
+    return await service.add(board_id, create_task, current_user, tag, limit_date)
 
 
 @router.patch("/update")
@@ -36,10 +36,13 @@ async def update_task(
     service: TaskServiceDep,
     current_user: UserDep,
     update_task: UpdateTask,
-    limit_date: int = 0,
+    task_status: Status = "not started",
+    limit_date: int | None = 15,
     tag: Tags | str = "",
 ):
-    return await service.update(task_id, current_user, update_task, tag, limit_date)
+    return await service.update(
+        task_id, current_user, update_task, tag, task_status, limit_date
+    )
 
 
 @router.delete("/delete")

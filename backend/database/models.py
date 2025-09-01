@@ -14,6 +14,12 @@ class Tags(str, Enum):
     URGENT = "urgent"
 
 
+class Status(str, Enum):
+    NOT_STARTED = "not started"
+    IN_PROGRESS = "in progress"
+    FINISHED = "finished"
+
+
 class TasksToUsers(SQLModel, table=True):
     task_id: UUID = Field(default=None, foreign_key="task.id", primary_key=True)
     user_id: UUID = Field(default=None, foreign_key="user.id", primary_key=True)
@@ -76,6 +82,7 @@ class Task(SQLModel, table=True):
     board: "Board" = Relationship(
         back_populates="tasks", sa_relationship_kwargs={"lazy": "selectin"}
     )
+    status: Status = Field(default=Status.NOT_STARTED)
     created_at: datetime = Field(default=datetime.now())
     limit_date: datetime = Field(default=(datetime.now() + timedelta(days=14)))
     users_attached: List[User] = Relationship(

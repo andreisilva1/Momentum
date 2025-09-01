@@ -17,6 +17,13 @@ async def get_all_boards(current_user: UserDep, service: BoardServiceDep):
     return await service.get_all(current_user)
 
 
+@router.get("/get_all_tasks")
+async def get_all_board_tasks(
+    service: BoardServiceDep, board_id: UUID, current_user: UserDep
+):
+    return await service.get_all_tasks(board_id, current_user)
+
+
 @router.post("/create")
 async def create_board(
     organization_id: UUID,

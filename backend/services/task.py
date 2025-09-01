@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from fastapi import HTTPException, status
-from backend.database.models import Tags, Task, TasksToUsers, User
+from backend.database.models import Status, Tags, Task, TasksToUsers, User
 from backend.schemas.task import CreateTask, UpdateTask
 from backend.utils import verify_password
 
@@ -34,9 +34,10 @@ class TaskService:
         board_id: UUID,
         create_task: CreateTask,
         current_user: User,
-        limit_date: int,
         tag: Tags,
+        limit_date,
     ):
+        limit_date = 15 if not limit_date else limit_date
         if any(
             board_id == board.id
             for org in current_user.in_organizations
@@ -64,42 +65,41 @@ class TaskService:
 
     async def update(
         self,
-        task_id,
+        task_id: UUID,
         current_user: User,
         update_task: UpdateTask,
-        tag: Tags,
-        limit_date: int,
+        tag: Tags | None = None,
+        task_status: Status | None = None,
+        limit_days: int = 0,
     ):
-        updated = False
-        task = await self.session.execute(select(Task).where(Task.id == task_id))
-        task = task.scalar_one_or_none()
+        result = await self.session.execute(select(Task).where(Task.id == task_id))
+        task = result.scalar_one_or_none()
         update_task.title = update_task.title if update_task.title else task.title
-        if task and any(task_id == task.id for task in current_user.tasks_attached):
-            new_task = {
-                **update_task.model_dump(),
-                "limit_date": task.limit_date + timedelta(days=limit_date),
-                "tag": tag if tag else task.tag,
-            }
-            for key, value in new_task.items():
-                if hasattr(task, key):
-                    current_value = getattr(task, key)
-                    if current_value != value:
-                        setattr(task, key, value)
-                        updated = True
+        if not task or task_id not in [t.id for t in current_user.tasks_attached]:
+            raise HTTPException(status_code=404, detail="No task found.")
 
-            if not updated:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="No update informations provided.",
-                )
+        new_task = {
+            **update_task.model_dump(exclude_unset=True),
+            "limit_date": task.limit_date + timedelta(days=limit_days),
+            "tag": tag or task.tag,
+            "status": task_status or task.status,
+        }
 
-            self.session.add(task)
-            await self.session.commit()
-            await self.session.refresh(task)
-            return {"detail": "Task updated.", "new_task": task}
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No task found."
-        )
+        updated = False
+        for key, value in new_task.items():
+            if getattr(task, key, None) != value:
+                setattr(task, key, value)
+                updated = True
+
+        if not updated:
+            raise HTTPException(
+                status_code=404, detail="No update informations provided."
+            )
+
+        await self.session.commit()
+        await self.session.refresh(task)
+
+        return {"ok": True, "detail": "Task updated.", "new_task": task}
 
     async def delete(self, task_id, current_user: User, password: str):
         if verify_password(password, current_user.password_hashed) and any(

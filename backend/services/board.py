@@ -2,11 +2,12 @@ from uuid import UUID, uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from sqlmodel import select
-from backend.database.models import OrganizationsToUsers, User, Board
+from backend.database.models import Organization, OrganizationsToUsers, User, Board
 from backend.schemas.board import CreateBoard
 from datetime import datetime
 
 from backend.utils import verify_password
+from sqlalchemy.orm import selectinload
 
 
 class BoardService:
@@ -19,6 +20,22 @@ class BoardService:
         )
 
         return boards.scalars().all()
+
+    async def get_all_tasks(self, board_id: UUID, current_user: User):
+        board = await self.session.execute(
+            select(Board)
+            .options(
+                selectinload(Board.organization).selectinload(Organization.participants)
+            )
+            .where(Board.id == board_id)
+        )
+        board = board.scalar_one_or_none()
+        if board and current_user in board.organization.participants:
+            return {"ok": True, "tasks": board.tasks}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"ok": False, "detail": "No board found with the provided id"},
+        )
 
     async def get_by_search(self, search: str, current_user: User):
         boards = await self.session.execute(

@@ -6,6 +6,7 @@ import Organization from "./components/Organization";
 import CreateOrganization from "./components/CreateOrganization";
 import CreateBoard from "./components/CreateBoard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Board from "./components/Board";
 
 const App = () => {
   return (
@@ -50,6 +51,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <CreateBoard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/board"
+          element={
+            <ProtectedRoute>
+              <Board />
             </ProtectedRoute>
           }
         />

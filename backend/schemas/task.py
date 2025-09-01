@@ -3,7 +3,7 @@ from typing import List
 from uuid import UUID
 from pydantic import BaseModel
 
-from backend.database.models import User
+from backend.database.models import Status, User
 
 
 class BaseTask(BaseModel):
