@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from fastapi import HTTPException, status
-from backend.database.models import Board, Organization, OrganizationsToUsers, User
+from backend.database.models import Organization, OrganizationsToUsers, User
 from backend.schemas.organization import CreateOrganization
 from uuid import UUID, uuid4
 from datetime import datetime
@@ -83,6 +83,30 @@ class OrganizationService:
             if organization.title == title:
                 return organization
         return None
+
+    async def add_new_participant(
+        self, organization_id, email: str, current_user: User
+    ):
+        user = await self.session.execute(select(User).where(User.email == email))
+        user = user.scalar_one_or_none()
+        if user == current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="You can't add yourself to the group.",
+            )
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+            )
+        organization_to_user = OrganizationsToUsers(
+            user_id=user.id, organization_id=organization_id
+        )
+        self.session.add(organization_to_user)
+        await self.session.commit()
+        return {
+            "ok": True,
+            "detail": f"User {user.username} added to this organization",
+        }
 
     async def add(self, organization: CreateOrganization, current_user: User):
         if not organization.title.strip():
