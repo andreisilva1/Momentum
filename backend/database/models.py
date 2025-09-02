@@ -90,6 +90,7 @@ class Task(SQLModel, table=True):
         link_model=TasksToUsers,
         sa_relationship_kwargs={"lazy": "selectin"},
     )
+    finished_at: datetime = Field(nullable=True)
 
 
 class Organization(SQLModel, table=True):

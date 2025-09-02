@@ -3,7 +3,6 @@ import User from "./components/User";
 import Home from "./components/Home";
 import Profile from "./components/Profile";
 import Organization from "./components/Organization";
-import CreateOrganization from "./components/CreateOrganization";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Board from "./components/Board";
 
@@ -34,14 +33,6 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Organization />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/organization/create"
-          element={
-            <ProtectedRoute>
-              <CreateOrganization />
             </ProtectedRoute>
           }
         />

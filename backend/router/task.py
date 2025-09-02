@@ -45,6 +45,11 @@ async def update_task(
     )
 
 
+@router.patch("/finish_task")
+async def finish_task(task_id: UUID, current_user: UserDep, service: TaskServiceDep):
+    return await service.finish_task(task_id, current_user)
+
+
 @router.delete("/delete")
 async def delete_task(
     task_id: UUID, service: TaskServiceDep, current_user: UserDep, password: str

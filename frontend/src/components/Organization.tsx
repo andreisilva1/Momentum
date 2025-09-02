@@ -161,11 +161,11 @@ const Organization = () => {
   };
 
   return (
-    <div className="flex-col items-center h-screen">
-      <div className="border-2 p-5 m-2">
-        <h1 className="w-full font-bold text-2xl mb-5">{organization.title}</h1>
+    <div className="flex-col items-center h-screen bg-white">
+      <div className="p-5">
+        <h1 className="text-titles p-2">{organization.title}</h1>
         <nav>
-          <div className="flex v-screen justify-between p-1 border-2">
+          <div className="options-div">
             <button
               onClick={() => {
                 setOptions({
@@ -174,11 +174,11 @@ const Organization = () => {
                   details: false,
                 });
               }}
-              className="font-storyscript font-bold hover:opacity-85 cursor-pointer"
+              className="text-tables"
             >
               Boards
             </button>
-            <p>|</p>
+            <p className="divider">|</p>
             <button
               onClick={() => {
                 handleParticipants(),
@@ -188,11 +188,11 @@ const Organization = () => {
                     details: false,
                   });
               }}
-              className="font-storyscript font-bold hover:opacity-85 cursor-pointer"
+              className="text-tables"
             >
               Participants
             </button>
-            <p>|</p>
+            <p className="divider">|</p>
 
             <button
               onClick={() => {
@@ -202,17 +202,17 @@ const Organization = () => {
                   details: true,
                 });
               }}
-              className="font-storyscript font-bold hover:opacity-85 cursor-pointer"
+              className="text-tables"
             >
               Details
             </button>
           </div>
         </nav>
         {createBoard && (
-          <div className="flex shadow-4xl z-1 bg-[white] justify-center items-center shadow-lg">
+          <div className="flex shadow-4xl z-1 justify-center items-center border-white border-b-1">
             <form>
-              <div className="flex flex-col w-full p-5">
-                <label className="font-bold mb-2" htmlFor="title">
+              <div className="flex flex-col w-full p-5 text-white">
+                <label className="label-text" htmlFor="title">
                   Title
                 </label>
                 <input
@@ -220,19 +220,19 @@ const Organization = () => {
                   id="title"
                   name="title"
                   type="text"
-                  className="shadow-lg p-2 mb-4"
+                  className="input-sw-mg"
                   placeholder="Enter the name"
                 />
                 <button
                   onClick={handleSubmit(create)}
-                  className="font-bold text-white bg-green-700 pl-4 pr-4 pb-2 pt-2 mb-2 rounded-lg hover:bg-green-950 cursor-pointer"
+                  className="font-bold text-white bg-[#b1132b] pl-4 pr-4 pb-2 pt-2 mb-2 rounded-lg hover:bg-[#d82f49] cursor-pointer"
                 >
                   Create Board
                 </button>
               </div>
               {successMsg && (
                 <p
-                  className="hover:underline hover:text-blue-800 cursor-pointer"
+                  className="text-[#420C14] mb-3 font-medium"
                   onClick={() => handleBoard(newBoard)}
                 >
                   Board "{name}" created successfully in organization "
@@ -249,7 +249,7 @@ const Organization = () => {
               {organization.creator_id === user.id && (
                 <button
                   onClick={() => setCreateBoard(!createBoard)}
-                  className="bg-green-700 font-bold pl-2 pr-2 pt-1 pb-1 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-green-950 cursor-pointer"
+                  className="btn-selector"
                 >
                   {createBoard ? "Cancel" : "Create new board"}
                 </button>
@@ -265,7 +265,13 @@ const Organization = () => {
                   key={board.id}
                   className="font-bold flex mt-2 justify-between items-center border-2 p-2"
                 >
-                  {board.title}
+                  <div className="flex flex-col">
+                    <h1 className="task-attr-color">{board.title}</h1>
+                    <p className="text-sm text-[#b1132b]">
+                      Created at:{" "}
+                      {new Date(board.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                   {deletePasswordConfirmation && boardEditingID === board.id ? (
                     <div className="flex flex-col">
                       <button
@@ -327,7 +333,7 @@ const Organization = () => {
                 !newParticipant ? (
                   <button
                     onClick={() => setNewParticipant(!newParticipant)}
-                    className="bg-green-700 font-bold pl-2 pr-2 pt-1 pb-1 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-green-950 cursor-pointer"
+                    className="btn-selector"
                   >
                     Add a new participant
                   </button>
@@ -342,7 +348,7 @@ const Organization = () => {
                     />
                     <button
                       onClick={() => handleNewParticipant()}
-                      className="bg-green-700 font-bold pl-2 pr-2 mr-2 pt-1 pb-1 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-green-950 cursor-pointer"
+                      className="btn-selector"
                     >
                       Confirm
                     </button>

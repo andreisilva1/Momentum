@@ -3,9 +3,18 @@ from uuid import UUID, uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from fastapi import HTTPException, status
-from backend.database.models import Status, Tags, Task, TasksToUsers, User
+from backend.database.models import (
+    Board,
+    Organization,
+    Status,
+    Tags,
+    Task,
+    TasksToUsers,
+    User,
+)
 from backend.schemas.task import CreateTask, UpdateTask
 from backend.utils import verify_password
+from sqlalchemy.orm import selectinload
 
 
 class TaskService:
@@ -116,3 +125,25 @@ class TaskService:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="A error occurred. Verify the provided informations.",
         )
+
+    async def finish_task(self, task_id: UUID, current_user: User):
+        result = await self.session.execute(
+            select(Task)
+            .where(Task.id == task_id)
+            .options(
+                selectinload(Task.board)
+                .selectinload(Board.organization)
+                .selectinload(Organization.participants)
+            )
+        )
+
+        task = result.scalars().first()
+        if not task or current_user not in task.board.organization.participants:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="No task found."
+            )
+        task.finished_at = datetime.now()
+        self.session.add(task)
+        await self.session.commit()
+        self.session.refresh(task)
+        return task

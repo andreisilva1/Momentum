@@ -76,6 +76,13 @@ const Board = () => {
 
   const editNewBoardTitle = async () => {
     try {
+      if (newBoardTitle.trim() === "") {
+        setChangeBoardTitleMsg("Title empty. Name unchanged.");
+        setTimeout(() => {
+          setChangeBoardTitleMsg("");
+        }, 3000);
+        return;
+      }
       const response = await axios.patch(
         `http://localhost:8000/board/update?board_id=${board.id}&title=${newBoardTitle}`,
         {},
@@ -86,7 +93,6 @@ const Board = () => {
         }
       );
       if (response.status == 200) {
-        board.title = newBoardTitle;
         setChangeBoardTitleMsg(
           "Title successfully edited. To guarantee, exit and enter the board again."
         );
@@ -173,6 +179,24 @@ const Board = () => {
     }
   };
 
+  const finish_task = async (task_id: string) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:8000/task/finish_task?task_id=${task_id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.status == 200) {
+        //Success
+      }
+    } catch (error: any) {
+      //Error
+    }
+  };
   return (
     <div className="flex-col items-center h-screen bg-white">
       <div className="p-5">
@@ -183,9 +207,9 @@ const Board = () => {
             placeholder={board.title}
           />
         ) : (
-          <h1 className="text-titles p-2 border-b-2">{board.title}</h1>
+          <h1 className="text-titles mb-0 p-2">{board.title}</h1>
         )}
-        {changeBoardTitleMsg && <p>{changeBoardTitleMsg}</p>}
+        {changeBoardTitleMsg && <p className="mb-4">{changeBoardTitleMsg}</p>}
         {board.creator_id === currentUser.id && (
           <button
             onClick={
@@ -243,7 +267,7 @@ const Board = () => {
                     id="title"
                     name="title"
                     type="text"
-                    className="input-sw-mg"
+                    className="input-sw-mg text-black"
                     placeholder="Enter the name"
                   />
                   <label className="label-text" htmlFor="tag">
@@ -266,7 +290,7 @@ const Board = () => {
                     ))}
                   </select>
                   <label className="label-text" htmlFor="tag">
-                    Limit date (in days){" "}
+                    Limit date (default = 15 days from today){" "}
                   </label>
                   <input
                     {...register("limit_date", {
@@ -285,7 +309,7 @@ const Board = () => {
                   </button>
                 </div>
                 {successMsg && (
-                  <p className="text-[#420C14]e mb-3 font-medium">
+                  <p className="text-[#420C14] mb-3 font-medium">
                     Task "{name}" created successfully to board "{board.title}".{" "}
                   </p>
                 )}
@@ -374,18 +398,24 @@ const Board = () => {
                       </p>
                       <p
                         className={
-                          new Date() <
+                          new Date() >
                           new Date(
                             new Date(task.limit_date).getTime() -
                               3 * 24 * 60 * 60 * 1000
                           )
-                            ? "text-green-800 text-sm font-medium mt-2"
-                            : "text-sm font-bold mt-2 text-red-600 uppercase"
+                            ? "text-sm font-bold mt-2 text-red-600 uppercase"
+                            : "text-green-800 text-sm font-medium mt-2"
                         }
                       >
                         Limit date:{" "}
                         {new Date(task.limit_date).toLocaleDateString()}
                       </p>
+                      {task.finished_at && (
+                        <p className="text-sm">
+                          Finished at:{" "}
+                          {new Date(task.finished_at).toLocaleString()}
+                        </p>
+                      )}
                     </div>
 
                     {deletePasswordConfirmation && taskEditingID === task.id ? (
@@ -408,7 +438,7 @@ const Board = () => {
                         </button>
                         <input
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          type="password"
+                          type="text"
                           placeholder="Confirm your password"
                         />
                       </div>
@@ -445,13 +475,14 @@ const Board = () => {
                         {task.status === "in progress" && (
                           <div className="flex flex-col">
                             <button
-                              onClick={() =>
-                                handleChangeStatus(
-                                  task.id,
-                                  task.tag,
-                                  "finished"
-                                )
-                              }
+                              onClick={() => {
+                                finish_task(task.id),
+                                  handleChangeStatus(
+                                    task.id,
+                                    task.tag,
+                                    "finished"
+                                  );
+                              }}
                               className="bg-green-700 pl-4 pr-4 pt-2 pb-2 text-white mb-2 hover:bg-green-950 cursor-pointer"
                             >
                               Finish the task

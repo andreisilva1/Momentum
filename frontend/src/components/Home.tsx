@@ -105,7 +105,7 @@ const Home = () => {
             Create a new organization
           </button>
         </div>
-        <hr className="mb-2" />
+        <hr className="mb-2 text-white ml-2" />
         {organizations.map((organization: any) => (
           <li
             className="m-2 text-white font-bold text-sm hover:opacity-85 cursor-pointer"
@@ -139,7 +139,7 @@ const Home = () => {
               />
               <button
                 onClick={handleSubmit(create)}
-                className="btn-selector pl-4 pr-4 pb-2 pt-2 mb-2 mx-auto"
+                className="btn-selector pl-4 pr-4 pb-2 pt-2 mb-0 mx-auto"
               >
                 Create Organization
               </button>
@@ -147,7 +147,7 @@ const Home = () => {
                 onClick={() => {
                   setCreateOrganization(false), setSuccessMsg(false);
                 }}
-                className="btn-selector pl-4 pr-4 pb-2 pt-2 mb-2 mx-auto"
+                className="btn-selector pl-4 pr-4 pb-2 pt-2 mb-2 mt-2 mx-auto"
               >
                 Cancel
               </button>
