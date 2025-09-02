@@ -11,3 +11,49 @@
   --font-storyscript: Story Script, "sans-serif";
   --font-anton: Anton, "sans-serif";
 }
+
+@layer components {
+  .text-tables {
+    @apply mx-auto font-storyscript font-bold hover:opacity-85 cursor-pointer text-[#420C14];
+  }
+
+  .text-titles {
+    @apply w-full font-bold text-2xl mb-5 text-[#420C14];
+  }
+
+  .divider {
+    @apply text-[#420C14];
+  }
+
+  .btn-selector {
+    @apply bg-[#420C14] text-white font-bold pl-2 pr-2 pt-1 pb-1 mr-3 text-sm rounded-lg mt-4 mb-2 hover:bg-[#d82f49] cursor-pointer;
+  }
+
+  .btn-selected {
+    @apply bg-[#b1132b] text-white font-bold pl-2 pr-2 pt-1 pb-1 mr-3 text-sm rounded-lg mt-4 mb-2 hover:bg-[#d82f49] cursor-pointer;
+  }
+
+  .input-sw-mg {
+    @apply shadow-lg p-2 mb-4 text-[#420C14];
+  }
+
+  .label-text {
+    @apply font-bold mb-2 text-[#420C14];
+  }
+
+  .task-div {
+    @apply font-bold flex mt-2 justify-between items-center border-b-1 p-2 border-[#420C14];
+  }
+
+  .task-attr-color {
+    @apply text-[#260C1A];
+  }
+
+  .options-div {
+    @apply flex justify-between p-1 border-t-2 border-b-2 border-[#420C14];
+  }
+
+  .delete-button {
+    @apply bg-[#420C14] pl-4 pr-4 pt-2 pb-2 text-white mb-2 hover:bg-[#b1132b] cursor-pointer;
+  }
+}

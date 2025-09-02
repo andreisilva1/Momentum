@@ -13,7 +13,7 @@ const Organization = () => {
   const location = useLocation();
   const organization = location.state as Record<string, any>;
   const [options, setOptions] = useState({
-    boards: false,
+    boards: true,
     participants: false,
     details: false,
   });
@@ -25,7 +25,7 @@ const Organization = () => {
 
   const [msgWhenAddingNewParticipant, setMsgWhenAddingNewParticipant] =
     useState<boolean | string>("");
-
+  const [trigger, setTrigger] = useState(0);
   const [createBoard, setCreateBoard] = useState(false);
   const [newParticipant, setNewParticipant] = useState(false);
   const [newParticipantEmail, setNewParticipantEmail] = useState("");
@@ -62,6 +62,8 @@ const Organization = () => {
       );
       if (response.data.ok) {
         setNewBoard(response.data.board);
+        setTrigger(trigger + 1);
+
         setName(response.data.board.title);
         setSuccessMsg(true);
       }
@@ -94,22 +96,23 @@ const Organization = () => {
     }
   };
 
-  useEffect(() => {
-    const get_boards = async () => {
-      const boards = await axios.get(
-        `http://localhost:8000/organization/get_all_boards?organization_id=${organization.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      if (boards.data) {
-        setBoards(boards.data);
+  const get_boards = async () => {
+    const boards = await axios.get(
+      `http://localhost:8000/organization/get_all_boards?organization_id=${organization.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       }
-    };
+    );
+    if (boards.data) {
+      setBoards(boards.data);
+    }
+  };
+
+  useEffect(() => {
     get_boards();
-  }, []);
+  }, [trigger]);
 
   const handleNewParticipant = async () => {
     try {

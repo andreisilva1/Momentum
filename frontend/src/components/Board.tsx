@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation } from "react-router-dom";
 
@@ -12,7 +12,7 @@ const Board = () => {
   const location = useLocation();
   const board = location.state;
   const [options, setOptions] = useState({
-    tasks: false,
+    tasks: true,
     details: false,
   });
   const [successMsg, setSuccessMsg] = useState(false);
@@ -43,6 +43,7 @@ const Board = () => {
       );
       if (response.data.ok) {
         setName(response.data.task.title);
+        setTrigger(trigger + 1);
         setSuccessMsg(true);
       }
     } catch (error: any) {
@@ -55,15 +56,56 @@ const Board = () => {
       }, 3000);
     }
   };
+
+  const [editBoardTitleOption, setEditBoardTitleOption] = useState(false);
+  const [newBoardTitle, setNewBoardTitle] = useState("");
+
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") ?? "null");
   const [createTask, setCreateTask] = useState(false);
   const [tasks, setTasks] = useState<any[]>([]);
   const [deleteMsg, setDeleteMsg] = useState(false);
   const [changeMsg, setChangeMsg] = useState(false);
+  const [changeBoardTitleMsg, setChangeBoardTitleMsg] = useState("");
+  const [trigger, setTrigger] = useState(0);
   const [taskStatus, setTaskStatus] = useState("");
   const [deletePasswordConfirmation, setDeletePasswordConfirmation] =
     useState(false);
   const [taskEditingID, setTaskEditingID] = useState();
   const [passwordConfirm, setConfirmPassword] = useState("");
+  const [searchTask, setSearchTask] = useState("");
+
+  const editNewBoardTitle = async () => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:8000/board/update?board_id=${board.id}&title=${newBoardTitle}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.status == 200) {
+        board.title = newBoardTitle;
+        setChangeBoardTitleMsg(
+          "Title successfully edited. To guarantee, exit and enter the board again."
+        );
+        setTimeout(() => {
+          setChangeBoardTitleMsg("");
+        }, 3000);
+      }
+    } catch (error: any) {
+      if (error.response.status == 401) {
+        setChangeBoardTitleMsg(
+          "A error occurred. Try again after a few moments."
+        );
+
+        setTimeout(() => {
+          setChangeBoardTitleMsg("");
+        }, 3000);
+      }
+    }
+  };
 
   const handleTasks = async () => {
     const response = await axios.get(
@@ -80,6 +122,9 @@ const Board = () => {
       console.log("Something went wrong...");
     }
   };
+  useEffect(() => {
+    handleTasks();
+  }, [trigger]);
 
   const deleteTask = async (task_id: any) => {
     console.log(task_id);
@@ -97,7 +142,7 @@ const Board = () => {
 
       setTimeout(() => {
         window.location.reload();
-      }, 2000);
+      }, 1000);
     }
   };
 
@@ -122,18 +167,43 @@ const Board = () => {
 
       setTimeout(() => {
         window.location.reload();
-      }, 2000);
+      }, 1000);
     } else {
       console.log("Something went wrong");
     }
   };
 
   return (
-    <div className="flex-col items-center h-screen">
-      <div className="border-2 p-5 m-2">
-        <h1 className="w-full font-bold text-2xl mb-5">{board.title}</h1>
+    <div className="flex-col items-center h-screen bg-white">
+      <div className="p-5">
+        {editBoardTitleOption ? (
+          <input
+            onChange={(e) => setNewBoardTitle(e.target.value)}
+            className="text-titles border-2 rounded-lg p-2"
+            placeholder={board.title}
+          />
+        ) : (
+          <h1 className="text-titles p-2 border-b-2">{board.title}</h1>
+        )}
+        {changeBoardTitleMsg && <p>{changeBoardTitleMsg}</p>}
+        {board.creator_id === currentUser.id && (
+          <button
+            onClick={
+              editBoardTitleOption
+                ? () => {
+                    editNewBoardTitle(),
+                      setEditBoardTitleOption(!editBoardTitleOption);
+                  }
+                : () => setEditBoardTitleOption(!editBoardTitleOption)
+            }
+            className="btn-selector mt-0 hover:btn-selected"
+          >
+            {editBoardTitleOption ? "Confirm the edit" : "Edit Board title"}
+          </button>
+        )}
+
         <nav>
-          <div className="flex v-screen justify-between p-1 border-2">
+          <div className="options-div">
             <button
               onClick={() => {
                 handleTasks(),
@@ -142,11 +212,11 @@ const Board = () => {
                     details: false,
                   });
               }}
-              className="mx-auto font-storyscript font-bold hover:opacity-85 cursor-pointer"
+              className="text-tables"
             >
               Tasks
             </button>
-            <p>|</p>
+            <p className="divider">|</p>
             <button
               onClick={() => {
                 setOptions({
@@ -154,7 +224,7 @@ const Board = () => {
                   details: true,
                 });
               }}
-              className="mx-auto font-storyscript font-bold hover:opacity-85 cursor-pointer"
+              className="text-tables"
             >
               Details
             </button>
@@ -162,10 +232,10 @@ const Board = () => {
         </nav>
         <div>
           {createTask && (
-            <div className="flex shadow-4xl z-1 bg-[white] justify-center items-center shadow-lg">
+            <div className="flex shadow-4xl z-1 justify-center items-center border-white border-b-1">
               <form>
-                <div className="flex flex-col w-full p-5">
-                  <label className="font-bold mb-2" htmlFor="title">
+                <div className="flex flex-col w-full p-5 text-white">
+                  <label className="label-text" htmlFor="title">
                     Title
                   </label>
                   <input
@@ -173,13 +243,15 @@ const Board = () => {
                     id="title"
                     name="title"
                     type="text"
-                    className="shadow-lg p-2 mb-4"
+                    className="input-sw-mg"
                     placeholder="Enter the name"
                   />
-                  <label htmlFor="tag">Tag</label>
+                  <label className="label-text" htmlFor="tag">
+                    Tag
+                  </label>
                   <select
                     {...register("tag", { required: "A tag is required." })}
-                    className="shadow-lg p-2 mb-4"
+                    className="input-sw-mg text-black"
                     name="tag"
                     id="tag"
                     defaultValue=""
@@ -193,30 +265,28 @@ const Board = () => {
                       </option>
                     ))}
                   </select>
-                  <label htmlFor="tag">Limit date (in days) </label>
+                  <label className="label-text" htmlFor="tag">
+                    Limit date (in days){" "}
+                  </label>
                   <input
                     {...register("limit_date", {
                       required: "A limit date is required.",
                     })}
                     min={0}
-                    className="shadow-lg p-2 mb-4"
+                    className="input-sw-mg"
                     type="number"
                   />
 
                   <button
                     onClick={handleSubmit(create)}
-                    className="font-bold text-white bg-green-700 pl-4 pr-4 pb-2 pt-2 mb-2 rounded-lg hover:bg-green-950 cursor-pointer"
+                    className="font-bold text-white bg-[#b1132b] pl-4 pr-4 pb-2 pt-2 mb-2 rounded-lg hover:bg-[#d82f49] cursor-pointer"
                   >
                     Create Task
                   </button>
                 </div>
                 {successMsg && (
-                  <p
-                    className="hover:underline hover:text-blue-750"
-                    onClick={() => window.location.reload()}
-                  >
-                    Task "{name}" created successfully to board "{board.title}".
-                    Reload the page or click here.
+                  <p className="text-[#420C14]e mb-3 font-medium">
+                    Task "{name}" created successfully to board "{board.title}".{" "}
                   </p>
                 )}
                 {errors.title && <p>{errors.title.message}</p>}
@@ -229,61 +299,79 @@ const Board = () => {
             <div>
               <button
                 onClick={() => setCreateTask(!createTask)}
-                className="bg-green-700 font-bold pl-2 pr-2 pt-1 pb-1 mr-3 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-green-950 cursor-pointer"
+                className="btn-selector"
               >
                 {createTask ? "Cancel" : "Create new task"}
               </button>
               <button
                 onClick={() => setTaskStatus("")}
-                className="bg-orange-700 font-bold pl-2 pr-2 pt-1 pb-1 mr-3 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-orange-950 cursor-pointer"
+                className={taskStatus === "" ? "btn-selected" : "btn-selector"}
               >
                 All tasks
               </button>
               <button
                 onClick={() => setTaskStatus("not started")}
-                className="bg-blue-700 font-bold pl-2 pr-2 pt-1 pb-1 mr-3 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-blue-950 cursor-pointer"
+                className={
+                  taskStatus === "not started" ? "btn-selected" : "btn-selector"
+                }
               >
                 Not started
               </button>
               <button
                 onClick={() => setTaskStatus("in progress")}
-                className="bg-yellow-700 font-bold pl-2 pr-2 pt-1 pb-1 mr-3 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-yellow-950 cursor-pointer"
+                className={
+                  taskStatus === "in progress" ? "btn-selected" : "btn-selector"
+                }
               >
                 In progress
               </button>
               <button
                 onClick={() => setTaskStatus("finished")}
-                className="bg-pink-700 font-bold pl-2 pr-2 pt-1 pb-1 mr-3 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-pink-950 cursor-pointer"
+                className={
+                  taskStatus === "finished" ? "btn-selected" : "btn-selector"
+                }
               >
                 Finished
               </button>
-
+              <input
+                className="shadow-lg p-2 w-full"
+                placeholder="Search by name or classification (commom, important, urgent) here"
+                onChange={(e) => setSearchTask(e.target.value)}
+                type="text"
+              />
               {changeMsg && <p>Task status successfully updated.</p>}
               {deleteMsg && <p>Task successfully deleted.</p>}
 
               {tasks
-                .filter(
-                  (task) => taskStatus === "" || task.status === taskStatus
-                )
+                .filter((task) => {
+                  const matchesStatus =
+                    taskStatus === "" || task.status === taskStatus;
+
+                  const matchesSearch =
+                    searchTask === "" ||
+                    task.title
+                      .toLowerCase()
+                      .includes(searchTask.toLowerCase()) ||
+                    task.tag.toLowerCase().includes(searchTask.toLowerCase());
+
+                  return matchesStatus && matchesSearch;
+                })
                 .map((task) => (
-                  <div
-                    key={task.id}
-                    className="font-bold flex mt-2 justify-between items-center border-2 p-2"
-                  >
+                  <div key={task.id} className="task-div">
                     <div className="flex flex-col">
-                      <h1>{task.title}</h1>
-                      <p className="text-sm font-medium">
+                      <h1 className="task-attr-color">{task.title}</h1>
+                      <p className="task-attr-color text-sm font-medium mb-1">
                         Status: {task.status}
                       </p>
-                      <h5
+                      <p
                         className={
                           task.tag === "urgent"
-                            ? "text-sm font-bold text-red-700 uppercase"
-                            : "text-sm font-bold text-blue-700"
+                            ? "text-sm font-bold text-red-600 uppercase"
+                            : "text-sm font-bold text-green-600"
                         }
                       >
                         Classification: {task.tag}
-                      </h5>
+                      </p>
                       <p
                         className={
                           new Date() <
@@ -291,8 +379,8 @@ const Board = () => {
                             new Date(task.limit_date).getTime() -
                               3 * 24 * 60 * 60 * 1000
                           )
-                            ? "text-sm font-bold mt-4 text-green-700"
-                            : "text-sm font-bold mt-4 text-red-700"
+                            ? "text-green-800 text-sm font-medium mt-2"
+                            : "text-sm font-bold mt-2 text-red-600 uppercase"
                         }
                       >
                         Limit date:{" "}
@@ -320,7 +408,7 @@ const Board = () => {
                         </button>
                         <input
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          type="text"
+                          type="password"
                           placeholder="Confirm your password"
                         />
                       </div>
@@ -333,7 +421,7 @@ const Board = () => {
                             ),
                             setTaskEditingID(task.id)
                           )}
-                          className="bg-red-700 pl-4 pr-4 pt-2 pb-2 text-white mb-2 hover:bg-red-950 cursor-pointer"
+                          className="delete-button"
                         >
                           Delete the task
                         </button>
