@@ -4,10 +4,8 @@ import Home from "./components/Home";
 import Profile from "./components/Profile";
 import Organization from "./components/Organization";
 import CreateOrganization from "./components/CreateOrganization";
-import CreateBoard from "./components/CreateBoard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Board from "./components/Board";
-import CreateTask from "./components/CreateTask";
 
 const App = () => {
   return (
@@ -47,27 +45,12 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/board/create"
-          element={
-            <ProtectedRoute>
-              <CreateBoard />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/board"
           element={
             <ProtectedRoute>
               <Board />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/task/create"
-          element={
-            <ProtectedRoute>
-              <CreateTask />
             </ProtectedRoute>
           }
         />

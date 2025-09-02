@@ -1,6 +1,13 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
+
+type FormCreateBoardData = {
+  title: string;
+  tag: string;
+  limit_date: Number;
+};
 
 const Organization = () => {
   const location = useLocation();
@@ -14,9 +21,12 @@ const Organization = () => {
   const user = JSON.parse(localStorage.getItem("currentUser") ?? "null");
   const [boards, setBoards] = useState<any[]>([]);
   const [successMsg, setSuccessMsg] = useState(false);
+  const [deleteMsg, setDeleteMsg] = useState(false);
+
   const [msgWhenAddingNewParticipant, setMsgWhenAddingNewParticipant] =
     useState<boolean | string>("");
 
+  const [createBoard, setCreateBoard] = useState(false);
   const [newParticipant, setNewParticipant] = useState(false);
   const [newParticipantEmail, setNewParticipantEmail] = useState("");
   const [participants, setParticipants] = useState<any[]>([]);
@@ -25,7 +35,47 @@ const Organization = () => {
   const navigate = useNavigate();
   const [boardEditingID, setBoardEditingID] = useState();
   const [passwordConfirm, setConfirmPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<FormCreateBoardData>();
+  const [newBoard, setNewBoard] = useState();
+  const [name, setName] = useState("");
 
+  const handleBoard = async (board: any) => {
+    navigate("/board", { state: board });
+  };
+  const create = async (data: FormCreateBoardData) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/board/create?organization_id=${organization.id}`,
+        {
+          title: data.title,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.data.ok) {
+        setNewBoard(response.data.board);
+        setName(response.data.board.title);
+        setSuccessMsg(true);
+      }
+    } catch (error: any) {
+      setError("title", {
+        type: "manual",
+        message:
+          "Error when creating the board. Try again after a few moments.",
+      });
+      setTimeout(() => {
+        setError("title", { type: "manual", message: "" });
+      }, 3000);
+    }
+  };
   const deleteBoard = async (board_id: any) => {
     const response = await axios.delete(
       `http://localhost:8000/board/delete?board_id=${board_id}&password=${passwordConfirm}`,
@@ -36,28 +86,30 @@ const Organization = () => {
       }
     );
     if (response.data.ok) {
-      setSuccessMsg(true);
+      setDeleteMsg(true);
 
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     }
   };
-  const handleBoards = async () => {
-    const response = await axios.get(
-      `http://localhost:8000/organization/get_all_boards?organization_id=${organization.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+
+  useEffect(() => {
+    const get_boards = async () => {
+      const boards = await axios.get(
+        `http://localhost:8000/organization/get_all_boards?organization_id=${organization.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (boards.data) {
+        setBoards(boards.data);
       }
-    );
-    if (response.data) {
-      setBoards(response.data);
-      console.log(boards);
-      console.log(options.boards);
-    }
-  };
+    };
+    get_boards();
+  }, []);
 
   const handleNewParticipant = async () => {
     try {
@@ -113,12 +165,11 @@ const Organization = () => {
           <div className="flex v-screen justify-between p-1 border-2">
             <button
               onClick={() => {
-                handleBoards(),
-                  setOptions({
-                    boards: true,
-                    participants: false,
-                    details: false,
-                  });
+                setOptions({
+                  boards: true,
+                  participants: false,
+                  details: false,
+                });
               }}
               className="font-storyscript font-bold hover:opacity-85 cursor-pointer"
             >
@@ -154,26 +205,54 @@ const Organization = () => {
             </button>
           </div>
         </nav>
+        {createBoard && (
+          <div className="flex shadow-4xl z-1 bg-[white] justify-center items-center shadow-lg">
+            <form>
+              <div className="flex flex-col w-full p-5">
+                <label className="font-bold mb-2" htmlFor="title">
+                  Title
+                </label>
+                <input
+                  {...register("title", { required: "A name is required." })}
+                  id="title"
+                  name="title"
+                  type="text"
+                  className="shadow-lg p-2 mb-4"
+                  placeholder="Enter the name"
+                />
+                <button
+                  onClick={handleSubmit(create)}
+                  className="font-bold text-white bg-green-700 pl-4 pr-4 pb-2 pt-2 mb-2 rounded-lg hover:bg-green-950 cursor-pointer"
+                >
+                  Create Board
+                </button>
+              </div>
+              {successMsg && (
+                <p
+                  className="hover:underline hover:text-blue-800 cursor-pointer"
+                  onClick={() => handleBoard(newBoard)}
+                >
+                  Board "{name}" created successfully in organization "
+                  {organization.title}", to access already, click here
+                </p>
+              )}
+              {errors.title && <p>{errors.title.message}</p>}
+            </form>
+          </div>
+        )}
         <div>
           {options.boards && (
             <div>
               {organization.creator_id === user.id && (
                 <button
-                  onClick={() =>
-                    navigate("/board/create", {
-                      state: {
-                        organization_id: organization.id,
-                        organization_name: organization.title,
-                      },
-                    })
-                  }
+                  onClick={() => setCreateBoard(!createBoard)}
                   className="bg-green-700 font-bold pl-2 pr-2 pt-1 pb-1 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-green-950 cursor-pointer"
                 >
-                  Create new board
+                  {createBoard ? "Cancel" : "Create new board"}
                 </button>
               )}
 
-              {successMsg && (
+              {deleteMsg && (
                 <p className="hover:underline hover:text-blue-800 cursor-pointer">
                   Board successfully deleted.
                 </p>
@@ -204,7 +283,7 @@ const Organization = () => {
                       </button>
                       <input
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        type="text"
+                        type="password"
                         placeholder="Confirm your password"
                       />
                     </div>
@@ -242,7 +321,7 @@ const Organization = () => {
           {options.participants && (
             <div>
               {organization.creator_id === user.id ? (
-                newParticipant ? (
+                !newParticipant ? (
                   <button
                     onClick={() => setNewParticipant(!newParticipant)}
                     className="bg-green-700 font-bold pl-2 pr-2 pt-1 pb-1 text-sm rounded-lg mt-4 text-white mb-2 hover:bg-green-950 cursor-pointer"
