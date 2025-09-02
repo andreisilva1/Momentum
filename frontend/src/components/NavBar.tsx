@@ -33,24 +33,23 @@ const NavBar = () => {
   };
   return (
     <nav>
-      <div className="flex v-screen justify-between">
+      <div className="flex justify-between bg-[#420C14]">
         <img
           onClick={profile}
-          className="mt-2 ml-4 w-[50px] h-[50px] rounded-full hover:opacity-80 cursor-pointer"
+          className="ml-4 w-[50px] h-[50px] rounded-full hover:opacity-80 cursor-pointer"
           src={profilePicture}
           alt="Profile picture"
         />
-        <p className="my-auto font-light scale-250 mt-5 font-storyscript">
-          Momentum
+        <p className="my-auto text-white font-bold text-shadow-2xs scale-250">
+          M o m e n t u m
         </p>
         <button
           onClick={logout}
-          className="mt-4 mb-1 mr-4 pl-4 pr-4 bg-green-700 text-white font-bold hover:bg-green-950 cursor-pointer"
+          className="btn-selector bg-white text-[#420C14]"
         >
           Logout
         </button>
       </div>
-      <hr className="mt-2 border-1" />
     </nav>
   );
 };
