@@ -1,12 +1,12 @@
 from datetime import datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlmodel import select
 from backend.database.models import User
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
 
-from backend.schemas.user import CreateUser
+from backend.schemas.user import CreateUser, ReadUser
 from backend.utils import generate_access_token
 
 password_context = CryptContext(deprecated="auto", schemes="bcrypt")
@@ -21,6 +21,16 @@ class UserService:
         user = user.scalar_one_or_none()
         ok = True if user else False
         return {"data": user, "ok": ok}
+
+    async def get_user_by_id(self, user_id: UUID) -> ReadUser:
+        user = await self.session.get(User, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user found with this id.",
+            )
+
+        return user
 
     async def add(self, user: CreateUser):
         new_user = await self.get(user.email)
