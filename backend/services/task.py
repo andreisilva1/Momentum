@@ -134,13 +134,18 @@ class TaskService:
             .options(
                 selectinload(Task.board)
                 .selectinload(Board.organization)
-                .selectinload(Organization.participants)
-                .selectinload(Task.users_attached)
+                .selectinload(Organization.participants),
+                selectinload(Task.users_attached),
             )
         )
 
         task = result.scalars().first()
-        if not task or current_user not in task.board.organization.participants or current_user not in task.users_attached:
+        if (
+            not task
+            or current_user.id
+            not in [user.id for user in task.board.organization.participants]
+            or current_user.id not in [user.id for user in task.users_attached]
+        ):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="No task found."
             )
