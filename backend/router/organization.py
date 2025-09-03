@@ -1,5 +1,6 @@
 from uuid import UUID
 from fastapi import APIRouter
+from pydantic import EmailStr
 
 from backend.dependencies import OrganizationServiceDep, UserDep
 from backend.schemas.organization import CreateOrganization
@@ -36,6 +37,18 @@ async def add_new_participant(
     return await service.add_new_participant(organization_id, email, current_user)
 
 
+@router.delete("/delete_participant")
+async def delete_participant(
+    current_user: UserDep,
+    organization_id: UUID,
+    participant_email: EmailStr,
+    service: OrganizationServiceDep,
+):
+    return await service.delete_user_from_organization(
+        organization_id, participant_email, current_user
+    )
+
+
 @router.get("/get_all_participants")
 async def get_organization_participants(
     organization_id: UUID, current_user: UserDep, service: OrganizationServiceDep
@@ -64,6 +77,9 @@ async def update_organization(
 
 @router.delete("/delete")
 async def delete_organization(
-    current_user: UserDep, service: OrganizationServiceDep, organization_id: UUID
+    current_user: UserDep,
+    service: OrganizationServiceDep,
+    password_confirm: str,
+    organization_id: UUID,
 ):
-    return await service.delete(organization_id, current_user)
+    return await service.delete(organization_id, password_confirm, current_user)

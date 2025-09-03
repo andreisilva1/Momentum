@@ -1,3 +1,4 @@
+from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from fastapi import HTTPException, status
@@ -5,6 +6,9 @@ from backend.database.models import Organization, OrganizationsToUsers, User
 from backend.schemas.organization import CreateOrganization
 from uuid import UUID, uuid4
 from datetime import datetime
+
+from backend.services.user import UserService
+from backend.utils import verify_password
 
 
 class OrganizationService:
@@ -163,10 +167,53 @@ class OrganizationService:
         await self.session.refresh(organization)
         return organization
 
-    async def delete(self, organization_id: UUID, current_user):
+    async def delete(self, organization_id: UUID, password: str, current_user: User):
         organization = await self.session.get(Organization, organization_id)
-        if organization.creator_id == current_user.id:
+        if organization.creator_id == current_user.id and verify_password(
+            password, current_user.password_hashed
+        ):
             title = organization.title
             await self.session.delete(organization)
             await self.session.commit()
             return {"detail": f"Organization {title} successfully deleted"}
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Denied permissions.",
+        )
+
+    async def delete_user_from_organization(
+        self, organization_id: UUID, participant_email: EmailStr, current_user: User
+    ):
+        participant = await UserService(self.session).get(participant_email)
+        if participant:
+            result = await self.session.execute(
+                select(OrganizationsToUsers).where(
+                    OrganizationsToUsers.organization_id == organization_id,
+                    OrganizationsToUsers.user_id == participant.id,
+                )
+            )
+
+            relationship = result.scalar_one_or_none()
+
+            if relationship:
+                organization = await self.session.get(Organization, organization_id)
+                if current_user.id == organization.creator_id:
+                    await self.session.delete(relationship)
+                    await self.session.commit()
+                    return {
+                        "detail": f"User successfully deleted from {organization.title}"
+                    }
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Denied permissions.",
+                    )
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="The user hasn't been found in the organization provided",
+                )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The user hasn't been found in the organization provided",
+        )

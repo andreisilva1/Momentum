@@ -23,8 +23,10 @@ const Organization = () => {
   const [successMsg, setSuccessMsg] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState(false);
 
-  const [msgWhenAddingNewParticipant, setMsgWhenAddingNewParticipant] =
-    useState<boolean | string>("");
+  const [
+    msgWhenAddingOrDeletingParticipant,
+    setMsgWhenAddingOrDeletingParticipant,
+  ] = useState<boolean | string>("");
   const [trigger, setTrigger] = useState(0);
   const [createBoard, setCreateBoard] = useState(false);
   const [newParticipant, setNewParticipant] = useState(false);
@@ -32,6 +34,9 @@ const Organization = () => {
   const [participants, setParticipants] = useState<any[]>([]);
   const [deletePasswordConfirmation, setDeletePasswordConfirmation] =
     useState(false);
+  const [deleteOrganizationConfirmation, setDeleteOrganizationConfirmation] =
+    useState(false);
+
   const navigate = useNavigate();
   const [boardEditingID, setBoardEditingID] = useState();
   const [passwordConfirm, setConfirmPassword] = useState("");
@@ -126,23 +131,25 @@ const Organization = () => {
         }
       );
       if (response.data.ok) {
-        setMsgWhenAddingNewParticipant("Participant successfully added.");
+        setMsgWhenAddingOrDeletingParticipant(
+          "Participant successfully added."
+        );
 
         setTimeout(() => {
-          setMsgWhenAddingNewParticipant("");
+          setMsgWhenAddingOrDeletingParticipant("");
         }, 3000);
       }
     } catch (error: any) {
       if (error.response.status == 404) {
-        setMsgWhenAddingNewParticipant("User not found.");
+        setMsgWhenAddingOrDeletingParticipant("User not found.");
       }
       if (error.response.status == 401) {
-        setMsgWhenAddingNewParticipant(
+        setMsgWhenAddingOrDeletingParticipant(
           "You are already in the group. Nice try!"
         );
       }
       setTimeout(() => {
-        setMsgWhenAddingNewParticipant("");
+        setMsgWhenAddingOrDeletingParticipant("");
       }, 3000);
     }
   };
@@ -160,6 +167,68 @@ const Organization = () => {
     }
   };
 
+  useEffect(() => {
+    if (msgWhenAddingOrDeletingParticipant !== "") {
+      handleParticipants();
+    }
+  }, [msgWhenAddingOrDeletingParticipant]);
+
+  const deleteParticipant = async (participant_email: string) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:8000/organization/delete_participant?organization_id=${organization.id}&participant_email=${participant_email}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.status == 200) {
+        setMsgWhenAddingOrDeletingParticipant(
+          "Participant successfully deleted."
+        );
+      }
+    } catch (error: any) {
+      if (error.response.status == 404) {
+        setMsgWhenAddingOrDeletingParticipant(
+          "A error occurred. User not found in the organization. Try again after a few moments."
+        );
+      }
+      if (error.response.status == 401) {
+        setMsgWhenAddingOrDeletingParticipant(
+          "Denied permissions. Only admins can do that."
+        );
+      }
+    } finally {
+      setTimeout(() => {
+        setMsgWhenAddingOrDeletingParticipant("");
+      }, 3000);
+    }
+  };
+
+  const deleteOrganization = async () => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:8000/organization/delete?password_confirm=${passwordConfirm}&organization_id=${organization.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.status == 200) {
+        navigate("/home");
+      }
+    } catch (error: any) {
+      setMsgWhenAddingOrDeletingParticipant(
+        "A error occurred. Confirm that the password is correct and try again after a few moments."
+      );
+    } finally {
+      setTimeout(() => {
+        setMsgWhenAddingOrDeletingParticipant("");
+      }, 3000);
+    }
+  };
   return (
     <div className="flex-col items-center h-screen bg-white">
       <div className="p-5">
@@ -339,7 +408,9 @@ const Organization = () => {
                   </button>
                 ) : (
                   <div>
-                    <p>{msgWhenAddingNewParticipant}</p>
+                    {msgWhenAddingOrDeletingParticipant && (
+                      <p>{msgWhenAddingOrDeletingParticipant}</p>
+                    )}
                     <input
                       type="text"
                       onChange={(e) => setNewParticipantEmail(e.target.value)}
@@ -370,7 +441,7 @@ const Organization = () => {
                     alt={participant.username}
                     className="mr-4 w-[50px] h-[50px] rounded-full"
                   />
-                  <div className="flex flex-col">
+                  <div className="flex flex-col border-b-1 w-full">
                     <h1>
                       {participant.username}
                       {participant.id === organization.creator_id ? (
@@ -381,6 +452,16 @@ const Organization = () => {
                       <strong>Since:</strong>{" "}
                       {new Date(participant.created_at).toLocaleDateString()}
                     </h1>
+                    <div className="justify-between">
+                      {participant.id !== organization.creator_id && (
+                        <button
+                          onClick={() => deleteParticipant(participant.email)}
+                          className="btn-selector mt-1"
+                        >
+                          Delete user
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -389,10 +470,49 @@ const Organization = () => {
         </div>
         <div>
           {options.details && (
-            <h1>
-              Created at:{" "}
-              {new Date(organization.created_at).toLocaleDateString()}
-            </h1>
+            <div>
+              <h1 className="mt-2">
+                Created at:{" "}
+                {new Date(organization.created_at).toLocaleDateString()}
+              </h1>
+              {user.id == organization.creator_id && (
+                <div>
+                  {!deleteOrganizationConfirmation && (
+                    <button
+                      onClick={() => setDeleteOrganizationConfirmation(true)}
+                      className="btn-selector"
+                    >
+                      Delete organization
+                    </button>
+                  )}
+                </div>
+              )}
+              {deleteOrganizationConfirmation && (
+                <div>
+                  <input
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="input-sw-mg"
+                    type="password"
+                    placeholder="Confirm your password"
+                  />
+                  <button
+                    onClick={() => deleteOrganization()}
+                    className="btn-selector ml-2"
+                  >
+                    Delete (IRREVERSIBLE!)
+                  </button>
+                  <button
+                    onClick={() => setDeleteOrganizationConfirmation(false)}
+                    className="btn-selector bg-blue-700 hover:bg-blue-950"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+              {msgWhenAddingOrDeletingParticipant && (
+                <p>{msgWhenAddingOrDeletingParticipant}</p>
+              )}
+            </div>
           )}
         </div>
       </div>

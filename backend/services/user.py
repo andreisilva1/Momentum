@@ -19,8 +19,12 @@ class UserService:
     async def get(self, email: str):
         user = await self.session.execute(select(User).where(User.email == email))
         user = user.scalar_one_or_none()
-        ok = True if user else False
-        return {"data": user, "ok": ok}
+        if user:
+            return user
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No user found with this email.",
+        )
 
     async def get_user_by_id(self, user_id: UUID) -> ReadUser:
         user = await self.session.get(User, user_id)
