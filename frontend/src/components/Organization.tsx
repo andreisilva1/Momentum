@@ -26,7 +26,11 @@ const Organization = () => {
   const [
     msgWhenAddingOrDeletingParticipant,
     setMsgWhenAddingOrDeletingParticipant,
-  ] = useState<boolean | string>("");
+  ] = useState("");
+  const [
+    msgWhenDeletingOrLeavingOrganization,
+    setMsgWhenDeletingOrLeavingOrganization,
+  ] = useState("");
   const [trigger, setTrigger] = useState(0);
   const [createBoard, setCreateBoard] = useState(false);
   const [newParticipant, setNewParticipant] = useState(false);
@@ -220,12 +224,43 @@ const Organization = () => {
         navigate("/home");
       }
     } catch (error: any) {
-      setMsgWhenAddingOrDeletingParticipant(
+      setMsgWhenDeletingOrLeavingOrganization(
         "A error occurred. Confirm that the password is correct and try again after a few moments."
       );
     } finally {
       setTimeout(() => {
-        setMsgWhenAddingOrDeletingParticipant("");
+        setMsgWhenDeletingOrLeavingOrganization("");
+      }, 3000);
+    }
+  };
+
+  const leaveOrganization = async () => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:8000/users/leave_organization?organization_id=${organization.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.status == 200) {
+        navigate("/home");
+      }
+    } catch (error: any) {
+      if (error.response.status == 404) {
+        setMsgWhenDeletingOrLeavingOrganization(
+          "A error occurred. Try again after a few moments."
+        );
+      }
+      if (error.response.status == 401) {
+        setMsgWhenDeletingOrLeavingOrganization(
+          "Admins can't leave the organization... Yet."
+        );
+      }
+    } finally {
+      setTimeout(() => {
+        setMsgWhenDeletingOrLeavingOrganization("");
       }, 3000);
     }
   };
@@ -453,13 +488,19 @@ const Organization = () => {
                       {new Date(participant.created_at).toLocaleDateString()}
                     </h1>
                     <div className="justify-between">
-                      {participant.id !== organization.creator_id && (
-                        <button
-                          onClick={() => deleteParticipant(participant.email)}
-                          className="btn-selector mt-1"
-                        >
-                          Delete user
-                        </button>
+                      {user.id === organization.creator_id && (
+                        <div>
+                          {participant.id !== organization.creator_id && (
+                            <button
+                              onClick={() =>
+                                deleteParticipant(participant.email)
+                              }
+                              className="btn-selector mt-1"
+                            >
+                              Delete user
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -487,6 +528,14 @@ const Organization = () => {
                   )}
                 </div>
               )}
+              {user.id !== organization.creator_id && (
+                <button
+                  onClick={() => leaveOrganization()}
+                  className="btn-selector ml-2"
+                >
+                  Leave the group
+                </button>
+              )}
               {deleteOrganizationConfirmation && (
                 <div>
                   <input
@@ -509,8 +558,8 @@ const Organization = () => {
                   </button>
                 </div>
               )}
-              {msgWhenAddingOrDeletingParticipant && (
-                <p>{msgWhenAddingOrDeletingParticipant}</p>
+              {msgWhenDeletingOrLeavingOrganization && (
+                <p>{msgWhenDeletingOrLeavingOrganization}</p>
               )}
             </div>
           )}

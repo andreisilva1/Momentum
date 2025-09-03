@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlmodel import select
-from backend.database.models import User
+from backend.database.models import Organization, OrganizationsToUsers, User
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
 
@@ -19,12 +19,7 @@ class UserService:
     async def get(self, email: str):
         user = await self.session.execute(select(User).where(User.email == email))
         user = user.scalar_one_or_none()
-        if user:
-            return user
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No user found with this email.",
-        )
+        return {"data": user}
 
     async def get_user_by_id(self, user_id: UUID) -> ReadUser:
         user = await self.session.get(User, user_id)
@@ -38,7 +33,6 @@ class UserService:
 
     async def add(self, user: CreateUser):
         new_user = await self.get(user.email)
-        print(new_user)
         if not new_user["data"]:
             new_user = User(
                 **user.model_dump(exclude=["password"]),
@@ -79,6 +73,12 @@ class UserService:
             update_infos["password"], current_user.password_hashed
         ):
             del update_infos["password"]
+            update_infos = {
+                key: value
+                for key, value in update_infos.items()
+                if value not in (None, "")
+                and not (isinstance(value, str) and value.strip() == "")
+            }
             update_infos["last_update"] = datetime.now()
             for key, value in update_infos.items():
                 setattr(current_user, key, value)
@@ -134,3 +134,26 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="No user provided"
             )
         return current_user
+
+    async def leave_organization(self, current_user: User, organization_id):
+        organization = await self.session.get(Organization, organization_id)
+        if organization.creator_id == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="The admins can't leave the organization... Yet.",
+            )
+        result = await self.session.execute(
+            select(OrganizationsToUsers).where(
+                OrganizationsToUsers.organization_id == organization_id,
+                OrganizationsToUsers.user_id == current_user.id,
+            )
+        )
+        relationship = result.scalar_one_or_none()
+        if relationship:
+            await self.session.delete(relationship)
+            await self.session.commit()
+            return {"detail": f"You leave the organization: {organization.title}"}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The user was not found in this organization.",
+        )

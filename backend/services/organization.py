@@ -189,7 +189,7 @@ class OrganizationService:
             result = await self.session.execute(
                 select(OrganizationsToUsers).where(
                     OrganizationsToUsers.organization_id == organization_id,
-                    OrganizationsToUsers.user_id == participant.id,
+                    OrganizationsToUsers.user_id == participant["data"].id,
                 )
             )
 

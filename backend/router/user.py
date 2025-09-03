@@ -64,3 +64,10 @@ async def login(
 async def logout(token_data: Annotated[dict, Depends(return_the_access_token)]):
     await add_jti_to_blacklist(token_data["jti"])
     return {"ok": True, "detail": "Successfully logged out"}
+
+
+@router.delete("/leave_organization")
+async def leave_organization(
+    current_user: UserDep, service: UserServiceDep, organization_id: UUID
+):
+    return await service.leave_organization(current_user, organization_id)
