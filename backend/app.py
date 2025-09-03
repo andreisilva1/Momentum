@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.database.redis import init_db
 from backend.database.session import create_db_tables
 from backend.router import board, organization, task, user
 from scalar_fastapi import get_scalar_api_reference
@@ -10,6 +11,7 @@ from scalar_fastapi import get_scalar_api_reference
 @asynccontextmanager
 async def lifespan_handler(app: FastAPI):
     await create_db_tables()
+    await init_db()
     yield
 
 

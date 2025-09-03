@@ -272,13 +272,6 @@ const User = () => {
                 Already have a account? Click here to login
               </button>
             )}
-
-            <button
-              type="button"
-              className="font-light text-sm hover:text-[#0e3629] hover:underline hover:cursor-pointer"
-            >
-              Forgot your password? Click here
-            </button>
           </div>
         </form>
       </div>

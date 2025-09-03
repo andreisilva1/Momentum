@@ -1,12 +1,31 @@
-from redis.asyncio import Redis
-from backend.database.config import database_settings as settings
+import aiosqlite
 
-_token_blacklist = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
+DB_PATH = "blacklist.db"
+
+
+async def init_db():
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS token_blacklist (
+                jti TEXT PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await db.commit()
 
 
 async def add_jti_to_blacklist(jti: str):
-    await _token_blacklist.set(jti, "blacklisted")
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT OR IGNORE INTO token_blacklist (jti) VALUES (?)", (jti,)
+        )
+        await db.commit()
 
 
-async def is_jti_blacklisted(jti: str):
-    await _token_blacklist.exists(jti)
+async def is_jti_blacklisted(jti: str) -> bool:
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute(
+            "SELECT 1 FROM token_blacklist WHERE jti = ? LIMIT 1", (jti,)
+        )
+        row = await cursor.fetchone()
+        return row is not None
