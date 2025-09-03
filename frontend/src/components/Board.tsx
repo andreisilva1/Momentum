@@ -180,7 +180,7 @@ const Board = () => {
     }
   };
 
-  const finish_task = async (task_id: string) => {
+  const finishTask = async (task_id: string) => {
     try {
       const response = await axios.patch(
         `http://localhost:8000/task/finish_task?task_id=${task_id}`,
@@ -395,6 +395,7 @@ const Board = () => {
                 onChange={(e) => setSearchTask(e.target.value)}
                 type="text"
               />
+              {msgWhenAttachingTask && <p>{msgWhenAttachingTask}</p>}
               {changeMsg && <p>Task status successfully updated.</p>}
               {deleteMsg && <p>Task successfully deleted.</p>}
 
@@ -546,7 +547,7 @@ const Board = () => {
                               onChange={(e) =>
                                 setConfirmPassword(e.target.value)
                               }
-                              type="text"
+                              type="password"
                               placeholder="Confirm your password"
                             />
                           </div>
@@ -587,7 +588,7 @@ const Board = () => {
                               <div className="flex flex-col">
                                 <button
                                   onClick={() => {
-                                    finish_task(task.id),
+                                    finishTask(task.id),
                                       handleChangeStatus(
                                         task.id,
                                         task.tag,
