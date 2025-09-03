@@ -1,5 +1,6 @@
 from uuid import UUID
 from fastapi import APIRouter
+from pydantic import EmailStr
 
 from backend.database.models import Status, Tags
 from backend.dependencies import TaskServiceDep, UserDep
@@ -48,6 +49,13 @@ async def update_task(
 @router.patch("/finish_task")
 async def finish_task(task_id: UUID, current_user: UserDep, service: TaskServiceDep):
     return await service.finish_task(task_id, current_user)
+
+
+@router.post("/attach_task")
+async def attach_task(
+    task_id: UUID, current_user: UserDep, user_email: EmailStr, service: TaskServiceDep
+):
+    return await service.attach_task_to_user(current_user, user_email, task_id)
 
 
 @router.delete("/delete")

@@ -10,7 +10,8 @@ type FormCreateTaskData = {
 };
 const Board = () => {
   const location = useLocation();
-  const board = location.state;
+  const board = location.state?.board;
+  const participants = location.state?.participants;
   const [options, setOptions] = useState({
     tasks: true,
     details: false,
@@ -59,8 +60,10 @@ const Board = () => {
 
   const [editBoardTitleOption, setEditBoardTitleOption] = useState(false);
   const [newBoardTitle, setNewBoardTitle] = useState("");
-
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") ?? "null");
+  const [userToAttachTheTask, setUserToAttachTheTask] = useState<any>("");
+  const [msgWhenAttachingTask, setMsgWhenAttachingTask] = useState("");
+  const [userSelector, setUserSelector] = useState(false);
+  const user = JSON.parse(localStorage.getItem("currentUser") ?? "null");
   const [createTask, setCreateTask] = useState(false);
   const [tasks, setTasks] = useState<any[]>([]);
   const [deleteMsg, setDeleteMsg] = useState(false);
@@ -133,8 +136,6 @@ const Board = () => {
   }, [trigger]);
 
   const deleteTask = async (task_id: any) => {
-    console.log(task_id);
-    console.log(passwordConfirm);
     const response = await axios.delete(
       `http://localhost:8000/task/delete?task_id=${task_id}&password=${passwordConfirm}`,
       {
@@ -192,9 +193,40 @@ const Board = () => {
       );
       if (response.status == 200) {
         //Success
+        console.log("Successfully finished.");
       }
     } catch (error: any) {
       //Error
+      console.log("A error occurred.");
+    }
+  };
+
+  const attachTaskToUser = async (task: any) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8000/task/attach_task?task_id=${task.id}&user_email=${userToAttachTheTask.email}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.status == 200) {
+        setMsgWhenAttachingTask(
+          `Task ${task.title} attached to ${userToAttachTheTask.username}`
+        );
+      }
+    } catch (error: any) {
+      if (error.response.status == 404) {
+        setMsgWhenAttachingTask(
+          "A error occurred. Try again after a few moments."
+        );
+      }
+    } finally {
+      setTimeout(() => {
+        setMsgWhenAttachingTask("");
+      }, 3000);
     }
   };
   return (
@@ -210,7 +242,7 @@ const Board = () => {
           <h1 className="text-titles mb-0 p-2">{board.title}</h1>
         )}
         {changeBoardTitleMsg && <p className="mb-4">{changeBoardTitleMsg}</p>}
-        {board.creator_id === currentUser.id && (
+        {board.creator_id === user.id && (
           <button
             onClick={
               editBoardTitleOption
@@ -410,83 +442,164 @@ const Board = () => {
                         Limit date:{" "}
                         {new Date(task.limit_date).toLocaleDateString()}
                       </p>
+                      <p className="text-sm mt-3 font-medium">
+                        Attached to:{" "}
+                        {task.users_attached.map((user: any) => (
+                          <li key={user.id}>{user.username}</li>
+                        ))}
+                      </p>
                       {task.finished_at && (
                         <p className="text-sm">
                           Finished at:{" "}
                           {new Date(task.finished_at).toLocaleString()}
                         </p>
                       )}
-                    </div>
-
-                    {deletePasswordConfirmation && taskEditingID === task.id ? (
-                      <div className="flex flex-col">
-                        <button
-                          onClick={() => deleteTask(task.id)}
-                          className="bg-red-700 pl-4 pr-4 mb-2 pt-2 pb-2 text-white hover:bg-red-950 cursor-pointer"
-                        >
-                          Confirm Deletion
-                        </button>
-                        <button
-                          onClick={() =>
-                            setDeletePasswordConfirmation(
-                              !deletePasswordConfirmation
-                            )
-                          }
-                          className="bg-blue-700 pl-4 pr-4 pt-2 pb-2 text-white hover:bg-blue-950 cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                        <input
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          type="text"
-                          placeholder="Confirm your password"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <button
-                          onClick={() => (
-                            setDeletePasswordConfirmation(
-                              !deletePasswordConfirmation
-                            ),
-                            setTaskEditingID(task.id)
+                      {user.id == board.creator_id && (
+                        <div>
+                          {userSelector ? (
+                            <div>
+                              <select
+                                value={userToAttachTheTask}
+                                name="participant"
+                                id="participant"
+                                className="pb-2 pt-2 border-1 mr-2  font-light"
+                                onChange={(e) => {
+                                  const selected = participants.find(
+                                    (p: any) => p.username === e.target.value
+                                  );
+                                  setUserToAttachTheTask(selected);
+                                }}
+                              >
+                                <option
+                                  className="text-gray-700 font-light"
+                                  disabled
+                                  value=""
+                                >
+                                  Select a participant
+                                </option>
+                                {participants
+                                  .filter(
+                                    (participant: any) =>
+                                      !task.users_attached.some(
+                                        (user: any) => user.id == participant.id
+                                      )
+                                  )
+                                  .map((participant: any) => (
+                                    <option
+                                      key={participant.id}
+                                      value={participant.username}
+                                    >
+                                      {participant.username}
+                                    </option>
+                                  ))}
+                              </select>
+                              <button
+                                onClick={() => attachTaskToUser(task)}
+                                className="btn-selector mt-2"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => setUserSelector(false)}
+                                className="btn-selector mt-2"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setUserSelector(true)}
+                              className="btn-selector mt-2"
+                            >
+                              Attach a user to this task
+                            </button>
                           )}
-                          className="delete-button"
-                        >
-                          Delete the task
-                        </button>
-
-                        {task.status === "not started" && (
+                        </div>
+                      )}
+                    </div>
+                    {(user.id == task.creator_id ||
+                      user.id == board.creator_id ||
+                      task.users_attached.some(
+                        (user_attached: any) => user_attached.id == user.id
+                      )) && (
+                      <div>
+                        {deletePasswordConfirmation &&
+                        taskEditingID === task.id ? (
                           <div className="flex flex-col">
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              className="bg-red-700 pl-4 pr-4 mb-2 pt-2 pb-2 text-white hover:bg-red-950 cursor-pointer"
+                            >
+                              Confirm Deletion
+                            </button>
                             <button
                               onClick={() =>
-                                handleChangeStatus(
-                                  task.id,
-                                  task.tag,
-                                  "in%20progress"
+                                setDeletePasswordConfirmation(
+                                  !deletePasswordConfirmation
                                 )
                               }
-                              className="bg-green-700 pl-4 pr-4 pt-2 pb-2 text-white mb-2 hover:bg-green-950 cursor-pointer"
+                              className="bg-blue-700 pl-4 pr-4 pt-2 pb-2 text-white hover:bg-blue-950 cursor-pointer"
                             >
-                              Change to in progress
+                              Cancel
                             </button>
+                            <input
+                              onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                              }
+                              type="text"
+                              placeholder="Confirm your password"
+                            />
                           </div>
-                        )}
-                        {task.status === "in progress" && (
-                          <div className="flex flex-col">
-                            <button
-                              onClick={() => {
-                                finish_task(task.id),
-                                  handleChangeStatus(
-                                    task.id,
-                                    task.tag,
-                                    "finished"
-                                  );
-                              }}
-                              className="bg-green-700 pl-4 pr-4 pt-2 pb-2 text-white mb-2 hover:bg-green-950 cursor-pointer"
-                            >
-                              Finish the task
-                            </button>
+                        ) : (
+                          <div>
+                            {(user.id == task.creator_id ||
+                              user.id == board.creator_id) && (
+                              <button
+                                onClick={() => (
+                                  setDeletePasswordConfirmation(
+                                    !deletePasswordConfirmation
+                                  ),
+                                  setTaskEditingID(task.id)
+                                )}
+                                className="delete-button"
+                              >
+                                Delete the task
+                              </button>
+                            )}
+
+                            {task.status === "not started" && (
+                              <div className="flex flex-col">
+                                <button
+                                  onClick={() =>
+                                    handleChangeStatus(
+                                      task.id,
+                                      task.tag,
+                                      "in%20progress"
+                                    )
+                                  }
+                                  className="bg-green-700 pl-4 pr-4 pt-2 pb-2 text-white mb-2 hover:bg-green-950 cursor-pointer"
+                                >
+                                  Change to in progress
+                                </button>
+                              </div>
+                            )}
+                            {task.status === "in progress" && (
+                              <div className="flex flex-col">
+                                <button
+                                  onClick={() => {
+                                    finish_task(task.id),
+                                      handleChangeStatus(
+                                        task.id,
+                                        task.tag,
+                                        "finished"
+                                      );
+                                  }}
+                                  className="bg-green-700 pl-4 pr-4 pt-2 pb-2 text-white mb-2 hover:bg-green-950 cursor-pointer"
+                                >
+                                  Finish the task
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

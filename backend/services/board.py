@@ -2,7 +2,13 @@ from uuid import UUID, uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from sqlmodel import select
-from backend.database.models import Organization, OrganizationsToUsers, User, Board
+from backend.database.models import (
+    Organization,
+    OrganizationsToUsers,
+    Task,
+    User,
+    Board,
+)
 from backend.schemas.board import CreateBoard
 from datetime import datetime
 
@@ -25,13 +31,34 @@ class BoardService:
         board = await self.session.execute(
             select(Board)
             .options(
-                selectinload(Board.organization).selectinload(Organization.participants)
+                selectinload(Board.organization).selectinload(
+                    Organization.participants
+                ),
+                selectinload(Board.tasks).selectinload(Task.users_attached),
             )
             .where(Board.id == board_id)
         )
         board = board.scalar_one_or_none()
         if board and current_user in board.organization.participants:
-            return {"ok": True, "tasks": board.tasks}
+            return {
+                "ok": True,
+                "tasks": [
+                    {
+                        "id": task.id,
+                        "title": task.title,
+                        "status": task.status,
+                        "tag": task.tag,
+                        "limit_date": task.limit_date,
+                        "finished_at": task.finished_at,
+                        "creator_id": task.creator_id,
+                        "users_attached": [
+                            {"id": user.id, "username": user.username}
+                            for user in task.users_attached
+                        ],
+                    }
+                    for task in board.tasks
+                ],
+            }
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"ok": False, "detail": "No board found with the provided id"},

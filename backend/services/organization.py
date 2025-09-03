@@ -178,7 +178,7 @@ class OrganizationService:
             return {"detail": f"Organization {title} successfully deleted"}
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Denied permissions.",
+            detail="Permissions denied.",
         )
 
     async def delete_user_from_organization(
@@ -206,7 +206,7 @@ class OrganizationService:
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Denied permissions.",
+                        detail="Permissions denied.",
                     )
             else:
                 raise HTTPException(

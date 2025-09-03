@@ -44,9 +44,9 @@ class TaskService:
         create_task: CreateTask,
         current_user: User,
         tag: Tags,
-        limit_date,
+        limit_days,
     ):
-        limit_date = 15 if not limit_date else limit_date
+        limit_days = 15 if (not limit_days or limit_days) < 0 else limit_days
         if any(
             board_id == board.id
             for org in current_user.in_organizations
@@ -57,7 +57,7 @@ class TaskService:
                 id=uuid4(),
                 creator_id=current_user.id,
                 created_at=datetime.now(),
-                limit_date=datetime.now() + timedelta(days=limit_date),
+                limit_date=datetime.now() + timedelta(days=limit_days),
                 tag=tag,
                 board_id=board_id,
             )
@@ -85,6 +85,7 @@ class TaskService:
         task_status: Status | None = None,
         limit_days: int = 0,
     ):
+        limit_days = 15 if (not limit_days or limit_days) < 0 else limit_days
         result = await self.session.execute(select(Task).where(Task.id == task_id))
         task = result.scalar_one_or_none()
         update_task.title = update_task.title if update_task.title else task.title
@@ -147,3 +148,31 @@ class TaskService:
         await self.session.commit()
         self.session.refresh(task)
         return task
+
+    async def attach_task_to_user(
+        self, current_user: User, user_email: str, task_id: UUID
+    ):
+        task = await self.session.execute(
+            select(Task)
+            .where(Task.id == task_id)
+            .options(selectinload(Task.board).selectinload(Board.organization))
+        )
+        task = task.scalar_one_or_none()
+
+        if [
+            user_email in user.email for user in task.board.organization.participants
+        ] and current_user.id == task.board.organization.creator_id:
+            user = [
+                participant
+                for participant in task.board.organization.participants
+                if participant.email == user_email
+            ]
+            relationship = TasksToUsers(task_id=task_id, user_id=user[0].id)
+            self.session.add(relationship)
+            await self.session.commit()
+            return {f"Task with the id {task_id} attached to {user_email}!"}
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Permissions denied. Verify that you are the administrator of the task organization and that the user provided is in the organization.",
+        )

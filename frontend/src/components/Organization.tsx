@@ -200,7 +200,7 @@ const Organization = () => {
       }
       if (error.response.status == 401) {
         setMsgWhenAddingOrDeletingParticipant(
-          "Denied permissions. Only admins can do that."
+          "Permissions denied. Only admins can do that."
         );
       }
     } finally {
@@ -403,7 +403,35 @@ const Organization = () => {
                   ) : (
                     <div className="flex flex-col">
                       <button
-                        onClick={() => navigate("/board", { state: board })}
+                        onClick={async () => {
+                          try {
+                            const response = await axios.get(
+                              `http://localhost:8000/organization/get_all_participants?organization_id=${organization.id}`,
+                              {
+                                headers: {
+                                  Authorization: `Bearer ${localStorage.getItem(
+                                    "token"
+                                  )}`,
+                                },
+                              }
+                            );
+
+                            if (response.data) {
+                              setParticipants(response.data);
+                              navigate("/board", {
+                                state: {
+                                  board,
+                                  participants: response.data,
+                                },
+                              });
+                            }
+                          } catch (error) {
+                            console.error(
+                              "Erro ao buscar participantes:",
+                              error
+                            );
+                          }
+                        }}
                         className="bg-green-700 pl-4 pr-4 mr-4 pt-2 pb-2 text-white mb-2 hover:bg-green-950 cursor-pointer"
                       >
                         Enter the board
