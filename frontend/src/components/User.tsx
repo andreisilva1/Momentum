@@ -11,6 +11,9 @@ type FormData = {
   password: string;
   confirmPassword: string;
 };
+
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const User = () => {
   const {
     register,
@@ -37,18 +40,14 @@ const User = () => {
     const params = new URLSearchParams();
     params.append("username", data.email);
     params.append("password", data.password);
-    const userLogin = await axios.post(
-      "http://localhost:8000/users/login",
-      params,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
+    const userLogin = await axios.post(`${apiUrl}/users/login`, params, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
     if (userLogin.data.ok) {
       localStorage.setItem("token", userLogin.data.access_token);
-      const response = await axios.get("http://localhost:8000/users/profile", {
+      const response = await axios.get(`${apiUrl}/users/profile`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -74,13 +73,11 @@ const User = () => {
   };
   const signup = async (data: FormData) => {
     if (data.password === data.confirmPassword) {
-      const user = await axios.get(
-        `http://localhost:8000/users/?email=${data.email}`
-      );
+      const user = await axios.get(`${apiUrl}/users/?email=${data.email}`);
       console.log(user.data);
       if (!user.data.ok) {
         const response = await axios.post(
-          "http://localhost:8000/users/signup",
+          `${apiUrl}/users/signup`,
           {
             username: data.username,
             email: data.email,

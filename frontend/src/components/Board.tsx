@@ -8,6 +8,9 @@ type FormCreateTaskData = {
   tag: string;
   limit_date: Number;
 };
+
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Board = () => {
   const location = useLocation();
   const board = location.state?.board;
@@ -30,7 +33,7 @@ const Board = () => {
   const create = async (data: FormCreateTaskData) => {
     try {
       const response = await axios.post(
-        `http://localhost:8000/task/create?board_id=${
+        `${apiUrl}/task/create?board_id=${
           board.id
         }&tag=${data.tag.toLowerCase()}&limit_date=${data.limit_date}`,
         {
@@ -87,7 +90,7 @@ const Board = () => {
         return;
       }
       const response = await axios.patch(
-        `http://localhost:8000/board/update?board_id=${board.id}&title=${newBoardTitle}`,
+        `${apiUrl}/board/update?board_id=${board.id}&title=${newBoardTitle}`,
         {},
         {
           headers: {
@@ -118,7 +121,7 @@ const Board = () => {
 
   const handleTasks = async () => {
     const response = await axios.get(
-      `http://localhost:8000/board/get_all_tasks?board_id=${board.id}`,
+      `${apiUrl}/board/get_all_tasks?board_id=${board.id}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -137,7 +140,7 @@ const Board = () => {
 
   const deleteTask = async (task_id: any) => {
     const response = await axios.delete(
-      `http://localhost:8000/task/delete?task_id=${task_id}&password=${passwordConfirm}`,
+      `${apiUrl}/task/delete?task_id=${task_id}&password=${passwordConfirm}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -159,7 +162,7 @@ const Board = () => {
     status: string
   ) => {
     const response = await axios.patch(
-      `http://localhost:8000/task/update?task_id=${task_id}&task_status=${status}&limit_date=0&tag=${task_tag}`,
+      `${apiUrl}/task/update?task_id=${task_id}&task_status=${status}&limit_date=0&tag=${task_tag}`,
       {
         title: "",
       },
@@ -183,7 +186,7 @@ const Board = () => {
   const finishTask = async (task_id: string) => {
     try {
       const response = await axios.patch(
-        `http://localhost:8000/task/finish_task?task_id=${task_id}`,
+        `${apiUrl}/task/finish_task?task_id=${task_id}`,
         {},
         {
           headers: {
@@ -204,7 +207,7 @@ const Board = () => {
   const attachTaskToUser = async (task: any) => {
     try {
       const response = await axios.post(
-        `http://localhost:8000/task/attach_task?task_id=${task.id}&user_email=${userToAttachTheTask.email}`,
+        `${apiUrl}/task/attach_task?task_id=${task.id}&user_email=${userToAttachTheTask.email}`,
         {},
         {
           headers: {

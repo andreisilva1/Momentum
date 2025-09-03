@@ -9,6 +9,9 @@ type FormData = {
   email: string;
   password: string;
 };
+
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Profile = () => {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("currentUser") ?? "{}")
@@ -58,7 +61,7 @@ const Profile = () => {
     const newProfilePicture = previewProfile;
 
     const response = await axios.patch(
-      "http://localhost:8000/users/update",
+      `${apiUrl}/users/update`,
       {
         username: data.username,
         email: data.email,

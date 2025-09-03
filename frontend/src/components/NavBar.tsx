@@ -2,6 +2,8 @@ import axios from "axios";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const NavBar = () => {
   const navigate = useNavigate();
   const user = localStorage.getItem("currentUser");
@@ -20,7 +22,7 @@ const NavBar = () => {
   const logout = async () => {
     const token = localStorage.getItem("token");
     const response = await axios.post(
-      "http://localhost:8000/users/logout",
+      `${apiUrl}/users/logout`,
       {},
       {
         headers: {

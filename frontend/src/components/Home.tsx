@@ -9,6 +9,8 @@ type FormData = {
   title: string;
 };
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Home = () => {
   const [organizations, setOrganizations] = useState([]);
   const handleOrganization = async (organization: any) => {
@@ -33,7 +35,7 @@ const Home = () => {
   const create = async (data: FormData) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/organization/create",
+        `${apiUrl}/organization/create`,
         {
           title: data.title,
         },
@@ -61,7 +63,7 @@ const Home = () => {
   };
   const get_organizations = async () => {
     const organizations = await axios.get(
-      "http://localhost:8000/organization/get_all",
+      `${apiUrl}/organization/get_all`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

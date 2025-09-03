@@ -9,6 +9,8 @@ type FormCreateBoardData = {
   limit_date: Number;
 };
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Organization = () => {
   const location = useLocation();
   const organization = location.state as Record<string, any>;
@@ -59,7 +61,7 @@ const Organization = () => {
   const create = async (data: FormCreateBoardData) => {
     try {
       const response = await axios.post(
-        `http://localhost:8000/board/create?organization_id=${organization.id}`,
+        `${apiUrl}/board/create?organization_id=${organization.id}`,
         {
           title: data.title,
         },
@@ -89,7 +91,7 @@ const Organization = () => {
   };
   const deleteBoard = async (board_id: any) => {
     const response = await axios.delete(
-      `http://localhost:8000/board/delete?board_id=${board_id}&password=${passwordConfirm}`,
+      `${apiUrl}/board/delete?board_id=${board_id}&password=${passwordConfirm}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -107,7 +109,7 @@ const Organization = () => {
 
   const get_boards = async () => {
     const boards = await axios.get(
-      `http://localhost:8000/organization/get_all_boards?organization_id=${organization.id}`,
+      `${apiUrl}/organization/get_all_boards?organization_id=${organization.id}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -126,7 +128,7 @@ const Organization = () => {
   const handleNewParticipant = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:8000/organization/add_new_participant?organization_id=${organization.id}&email=${newParticipantEmail}`,
+        `${apiUrl}/organization/add_new_participant?organization_id=${organization.id}&email=${newParticipantEmail}`,
         {},
         {
           headers: {
@@ -159,7 +161,7 @@ const Organization = () => {
   };
   const handleParticipants = async () => {
     const response = await axios.get(
-      `http://localhost:8000/organization/get_all_participants?organization_id=${organization.id}`,
+      `${apiUrl}/organization/get_all_participants?organization_id=${organization.id}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -180,7 +182,7 @@ const Organization = () => {
   const deleteParticipant = async (participant_email: string) => {
     try {
       const response = await axios.delete(
-        `http://localhost:8000/organization/delete_participant?organization_id=${organization.id}&participant_email=${participant_email}`,
+        `${apiUrl}/organization/delete_participant?organization_id=${organization.id}&participant_email=${participant_email}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -213,7 +215,7 @@ const Organization = () => {
   const deleteOrganization = async () => {
     try {
       const response = await axios.delete(
-        `http://localhost:8000/organization/delete?password_confirm=${passwordConfirm}&organization_id=${organization.id}`,
+        `${apiUrl}/organization/delete?password_confirm=${passwordConfirm}&organization_id=${organization.id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -237,7 +239,7 @@ const Organization = () => {
   const leaveOrganization = async () => {
     try {
       const response = await axios.delete(
-        `http://localhost:8000/users/leave_organization?organization_id=${organization.id}`,
+        `${apiUrl}/users/leave_organization?organization_id=${organization.id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -406,7 +408,7 @@ const Organization = () => {
                         onClick={async () => {
                           try {
                             const response = await axios.get(
-                              `http://localhost:8000/organization/get_all_participants?organization_id=${organization.id}`,
+                              `${apiUrl}/organization/get_all_participants?organization_id=${organization.id}`,
                               {
                                 headers: {
                                   Authorization: `Bearer ${localStorage.getItem(

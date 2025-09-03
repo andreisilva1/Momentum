@@ -6,6 +6,8 @@ interface Props {
   children: JSX.Element;
 }
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 export default function ProtectedRoute({ children }: Props) {
   const [isValidUser, setIsValidUser] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,9 +21,7 @@ export default function ProtectedRoute({ children }: Props) {
         return;
       }
       try {
-        const response = await axios.get(
-          `http://localhost:8000/users/user?id=${user.id}`
-        );
+        const response = await axios.get(`${apiUrl}/users/user?id=${user.id}`);
         console.log(response.status);
         if (response.status == 200) {
           setIsValidUser(true);
