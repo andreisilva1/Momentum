@@ -1,6 +1,7 @@
 import aiosqlite
+from database.config import database_settings as settings
 
-DB_PATH = "blacklist.db"
+DB_PATH = settings.BLACKLIST_DB
 
 
 async def init_db():

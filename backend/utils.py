@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException, status
 import jwt
 from backend.database.config import security_settings as settings
 from backend.core.security import oauth2_scheme
-from backend.database.redis import is_jti_blacklisted
+from backend.database.blacklist import is_jti_blacklisted
 from passlib.context import CryptContext
 
 password_context = CryptContext(deprecated="auto", schemes="bcrypt")

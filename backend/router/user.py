@@ -4,19 +4,13 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 
-from backend.database.redis import add_jti_to_blacklist
+from backend.database.blacklist import add_jti_to_blacklist
 from backend.dependencies import UserDep, UserServiceDep
 from backend.schemas.user import CreateUser, UpdateUser
 from backend.utils import return_the_access_token
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
-
-
-@router.get("/")
-async def get_user(service: UserServiceDep, email: EmailStr):
-    return await service.get(email)
-
 
 @router.get("/user")
 async def get_user_by_id(service: UserServiceDep, id: UUID):
