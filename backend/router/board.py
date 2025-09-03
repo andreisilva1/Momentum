@@ -2,7 +2,7 @@ from uuid import UUID
 from fastapi import APIRouter
 
 from backend.dependencies import BoardServiceDep, UserDep
-from backend.schemas.board import CreateBoard, UpdateBoard
+from backend.schemas.board import CreateBoard
 
 router = APIRouter(prefix="/board", tags=["Board"])
 

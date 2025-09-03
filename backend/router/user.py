@@ -12,6 +12,12 @@ from backend.utils import return_the_access_token
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+
+@router.get("/", include_in_schema=False)
+async def get_user(service: UserServiceDep, email: str):
+    return await service.get(email)
+
+
 @router.get("/user")
 async def get_user_by_id(service: UserServiceDep, id: UUID):
     return await service.get_user_by_id(id)

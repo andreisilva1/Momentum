@@ -1,5 +1,5 @@
 import aiosqlite
-from database.config import database_settings as settings
+from .config import database_settings as settings
 
 DB_PATH = settings.BLACKLIST_DB
 
