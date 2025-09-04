@@ -106,16 +106,22 @@ const Board = () => {
           setChangeBoardTitleMsg("");
         }, 3000);
       }
-    } catch (error: any) {
-      if (error.response.status == 401) {
-        setChangeBoardTitleMsg(
-          "A error occurred. Try again after a few moments."
-        );
-
-        setTimeout(() => {
-          setChangeBoardTitleMsg("");
-        }, 3000);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status == 401) {
+          setChangeBoardTitleMsg(
+            "A error occurred. Try again after a few moments."
+          );
+        } else {
+          setChangeBoardTitleMsg(
+            "Something went wrong. Try again after a few moments."
+          );
+        }
       }
+    } finally {
+      setTimeout(() => {
+        setChangeBoardTitleMsg("");
+      }, 3000);
     }
   };
 
@@ -200,7 +206,7 @@ const Board = () => {
       }
     } catch (error: any) {
       //Error
-      console.log("A error occurred.");
+      console.log("A error occurred with the request.");
     }
   };
 
@@ -220,11 +226,17 @@ const Board = () => {
           `Task ${task.title} attached to ${userToAttachTheTask.username}`
         );
       }
-    } catch (error: any) {
-      if (error.response.status == 404) {
-        setMsgWhenAttachingTask(
-          "A error occurred. Try again after a few moments."
-        );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status == 404) {
+          setMsgWhenAttachingTask(
+            "A error occurred. Try again after a few moments."
+          );
+        } else {
+          setMsgWhenAttachingTask(
+            "Something went wrong. Try again after a few moments."
+          );
+        }
       }
     } finally {
       setTimeout(() => {

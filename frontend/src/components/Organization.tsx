@@ -78,7 +78,7 @@ const Organization = () => {
         setName(response.data.board.title);
         setSuccessMsg(true);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setError("title", {
         type: "manual",
         message:
@@ -145,15 +145,21 @@ const Organization = () => {
           setMsgWhenAddingOrDeletingParticipant("");
         }, 3000);
       }
-    } catch (error: any) {
-      if (error.response.status == 404) {
-        setMsgWhenAddingOrDeletingParticipant("User not found.");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status == 404) {
+          setMsgWhenAddingOrDeletingParticipant("User not found.");
+        } else if (error.response?.status == 401) {
+          setMsgWhenAddingOrDeletingParticipant(
+            "You are already in the group. Nice try!"
+          );
+        } else {
+          setMsgWhenAddingOrDeletingParticipant(
+            "Something went wrong. Try again after a few moments."
+          );
+        }
       }
-      if (error.response.status == 401) {
-        setMsgWhenAddingOrDeletingParticipant(
-          "You are already in the group. Nice try!"
-        );
-      }
+    } finally {
       setTimeout(() => {
         setMsgWhenAddingOrDeletingParticipant("");
       }, 3000);
@@ -194,16 +200,21 @@ const Organization = () => {
           "Participant successfully deleted."
         );
       }
-    } catch (error: any) {
-      if (error.response.status == 404) {
-        setMsgWhenAddingOrDeletingParticipant(
-          "A error occurred. User not found in the organization. Try again after a few moments."
-        );
-      }
-      if (error.response.status == 401) {
-        setMsgWhenAddingOrDeletingParticipant(
-          "Permissions denied. Only admins can do that."
-        );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status == 404) {
+          setMsgWhenAddingOrDeletingParticipant(
+            "A error occurred. User not found in the organization. Try again after a few moments."
+          );
+        } else if (error.response?.status == 401) {
+          setMsgWhenAddingOrDeletingParticipant(
+            "Permissions denied. Only admins can do that."
+          );
+        } else {
+          setMsgWhenAddingOrDeletingParticipant(
+            "Something went wrong. Try again after a few moments."
+          );
+        }
       }
     } finally {
       setTimeout(() => {
@@ -249,16 +260,21 @@ const Organization = () => {
       if (response.status == 200) {
         navigate("/home");
       }
-    } catch (error: any) {
-      if (error.response.status == 404) {
-        setMsgWhenDeletingOrLeavingOrganization(
-          "A error occurred. Try again after a few moments."
-        );
-      }
-      if (error.response.status == 401) {
-        setMsgWhenDeletingOrLeavingOrganization(
-          "Admins can't leave the organization... Yet."
-        );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status == 404) {
+          setMsgWhenDeletingOrLeavingOrganization(
+            "A error occurred. Try again after a few moments."
+          );
+        } else if (error.response?.status == 401) {
+          setMsgWhenDeletingOrLeavingOrganization(
+            "Admins can't leave the organization... Yet."
+          );
+        } else {
+          setMsgWhenDeletingOrLeavingOrganization(
+            "Something went wrong. Try again after a few moments."
+          );
+        }
       }
     } finally {
       setTimeout(() => {

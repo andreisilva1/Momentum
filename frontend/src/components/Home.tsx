@@ -62,14 +62,11 @@ const Home = () => {
     }
   };
   const get_organizations = async () => {
-    const organizations = await axios.get(
-      `${apiUrl}/organization/get_all`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
+    const organizations = await axios.get(`${apiUrl}/organization/get_all`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
     if (organizations.data) {
       setOrganizations(organizations.data);
     }

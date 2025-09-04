@@ -28,9 +28,11 @@ export default function ProtectedRoute({ children }: Props) {
         } else {
           setIsValidUser(false);
         }
-      } catch (error: any) {
-        if (error.response.status == 404) {
-          setIsValidUser(false);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status == 404) {
+            setIsValidUser(false);
+          }
         }
       } finally {
         setIsLoading(false);
